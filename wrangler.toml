@@ -5,10 +5,4 @@ pages_build_output_dir = "."
 [[d1_databases]]
 binding = "DB"
 database_name = "waitlist"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
-
-[observability]
-enabled = true
-
-[observability.logs]
-enabled = true
+database_id = "c603a22b-034a-4961-b7fd-a06ff7c1b003"
