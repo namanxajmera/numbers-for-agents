@@ -35,6 +35,14 @@ cf dns records create --zone numberforagents.com --body '{
 
 4. Verify in Search Console, then submit sitemap: `https://numberforagents.com/sitemap.xml`
 
+## Email
+
+**Cloudflare Email Routing** (receive only). Catch-all rule: any `*@numberforagents.com` forwards to the owner's Gmail. MX, SPF, and DKIM records are added and locked by Email Routing.
+
+Inspect: `cf email-routing settings get -z numberforagents.com` and `cf email-routing rules catch-all get -z numberforagents.com`.
+
+Replies from Gmail come from the Gmail address. Sending as `hello@` needs a separate SMTP setup.
+
 ## Analytics (visitors vs bots)
 
 **Use Web Analytics for humans** (not zone **Traffic → Visitors**, which counts scanners).
