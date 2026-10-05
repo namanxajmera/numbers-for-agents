@@ -2,21 +2,25 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://numberforagents.com/</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number.html</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://numberforagents.com/guides/ai-agent-sms-api-explained.html</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html</loc>
+    <lastmod>2026-10-05</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
