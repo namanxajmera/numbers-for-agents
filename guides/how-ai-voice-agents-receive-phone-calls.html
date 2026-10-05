@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>How AI Voice Agents Receive Phone Calls | Number for Agents</title>
+  <title>How AI Voice Agents Receive Phone Calls | Numbers for Agents</title>
   <meta name="description" content="Understand inbound call flow for AI agents: webhooks, SIP, WebSocket media, latency, handoff to humans, and how to bring your own voice stack.">
   <link rel="canonical" href="https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html">
   <meta name="theme-color" content="#0a0b0d">
@@ -13,7 +13,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-nav">
     <div class="container">
-      <a class="wordmark" href="/">Number for Agents</a>
+      <a class="wordmark" href="/">Numbers for Agents</a>
       <nav aria-label="Primary">
         <ul class="nav-links">
           <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Phone number guide</a></li>
@@ -53,7 +53,7 @@
         <li><strong>WebSocket streaming</strong> — bidirectional audio frames encoded as PCM or Opus. Your agent service reads frames, runs VAD and STT, streams TTS back.</li>
         <li><strong>SIP</strong> — you return a SIP URI or the provider bridges to your registered trunk. Useful if you already host FreeSWITCH, Asterisk, or a CPaaS that speaks SIP.</li>
       </ul>
-      <p>Some teams mix both: webhook for state, WebSocket for media. Others send SIP directly to Retell, Vapi, or a custom orchestrator. Number for Agents stays neutral — we deliver the call leg; you choose the brain.</p>
+      <p>Some teams mix both: webhook for state, WebSocket for media. Others send SIP directly to Retell, Vapi, or a custom orchestrator. Numbers for Agents stays neutral — we deliver the call leg; you choose the brain.</p>
 
       <h2>Answering logic your agent must implement</h2>
       <p>On <code>call.started</code>, decide:</p>
@@ -89,7 +89,7 @@
       <p>Use real handsets, not only softphones. Test weak cell signal, speakerphone, and accented speech. Automate regression with recorded WAV files injected into your media layer where possible.</p>
       <p>Monitor webhook latency and media connect time as first-class metrics. Alert when P95 exceeds your budget.</p>
 
-      <h2>Where Number for Agents fits</h2>
+      <h2>Where Numbers for Agents fits</h2>
       <p>We focus on number provisioning, inbound/outbound call events, SIP trunking, and WebSocket media bridges — not on selling you a default voice model. Bring Bland, Vapi, Retell, or your own stack. <a href="/#waitlist">Join the waitlist</a> to shape the beta API and lock in early per-number pricing.</p>
 
       <aside class="guide-related">
@@ -97,7 +97,7 @@
         <ul>
           <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">How to give your AI agent a phone number</a></li>
           <li><a href="/guides/ai-agent-sms-api-explained.html">AI agent SMS API explained</a></li>
-          <li><a href="/">Number for Agents home</a></li>
+          <li><a href="/">Numbers for Agents home</a></li>
         </ul>
       </aside>
     </article>
@@ -106,7 +106,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
-      <p>&copy; 2026 Number for Agents</p>
+      <p>&copy; 2026 Numbers for Agents</p>
     </div>
   </footer>
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>

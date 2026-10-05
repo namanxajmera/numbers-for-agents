@@ -1,4 +1,4 @@
-# Number for Agents — landing site
+# Numbers for Agents — landing site
 
 Demand-validation landing page and waitlist for [numberforagents.com](https://numberforagents.com). Static HTML on Cloudflare Pages, waitlist API as a Pages Function, D1 storage.
 
@@ -13,27 +13,23 @@ Demand-validation landing page and waitlist for [numberforagents.com](https://nu
 
 ## Local development
 
-1. Install dependencies (pins Wrangler so local D1 and Pages dev share the same database file):
-
-```bash
-npm install
-```
+1. Install [Wrangler](https://developers.cloudflare.com/workers/wrangler/install-and-update/) (v4+). No Node project or `package.json` — static site plus one plain JS Pages Function.
 
 2. Create D1 and apply schema:
 
 ```bash
-npx wrangler d1 create waitlist
+wrangler d1 create waitlist
 # Copy database_id into wrangler.toml (replace REPLACE_WITH_D1_DATABASE_ID)
 
-npm run db:local
+wrangler d1 execute waitlist --local --file=./schema.sql
 ```
 
-Remote/production still needs `npm run db:remote` once after you create the D1 database. Local Pages dev also auto-creates the table on first signup if you skip `db:local`.
+Remote/production: `wrangler d1 execute waitlist --remote --file=./schema.sql` once after you create D1. Local Pages dev also auto-creates the table on first signup if you skip the local execute.
 
 3. Run Pages locally with Functions + D1:
 
 ```bash
-npm run dev
+wrangler pages dev . --d1=DB=waitlist
 ```
 
 Open the URL Wrangler prints (usually `http://localhost:8788`). Submit the waitlist form to hit `/api/waitlist`.
@@ -59,7 +55,7 @@ wrangler d1 execute waitlist --remote --file=./schema.sql
 ### Option B: Wrangler CLI
 
 ```bash
-wrangler pages project create number-for-agents --production-branch main
+wrangler pages project create numbers-for-agents --production-branch main
 wrangler pages deploy .
 ```
 
@@ -113,7 +109,7 @@ Or add binding in `wrangler.toml` (already present) and ensure `database_id` mat
 ├── sitemap.xml
 ├── schema.sql
 ├── wrangler.toml
-├── functions/api/waitlist.ts
+├── functions/api/waitlist.js
 └── guides/
     ├── how-to-give-your-ai-agent-a-phone-number.html
     ├── ai-agent-sms-api-explained.html

@@ -1,4 +1,4 @@
--- D1 schema for Number for Agents waitlist
+-- D1 schema for Numbers for Agents waitlist
 -- Apply: wrangler d1 execute waitlist --remote --file=./schema.sql
 
 CREATE TABLE IF NOT EXISTS waitlist (

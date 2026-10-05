@@ -1,18 +1,7 @@
-interface Env {
-  DB: D1Database;
-}
-
-type WaitlistBody = {
-  email?: string;
-  source?: string;
-  note?: string;
-  company?: string;
-};
-
 const EMAIL_RE =
   /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
-function json(status: number, body: Record<string, unknown>): Response {
+function json(status, body) {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
@@ -22,10 +11,9 @@ function json(status: number, body: Record<string, unknown>): Response {
   });
 }
 
-let schemaReady: Promise<void> | null = null;
+let schemaReady = null;
 
-/** Matches schema.sql — keeps local Pages dev working before remote migrate. */
-function ensureWaitlistSchema(db: D1Database): Promise<void> {
+function ensureWaitlistSchema(db) {
   if (!schemaReady) {
     schemaReady = (async () => {
       await db
@@ -48,8 +36,8 @@ function ensureWaitlistSchema(db: D1Database): Promise<void> {
   return schemaReady;
 }
 
-export const onRequestPost: PagesFunction<Env> = async (context) => {
-  let payload: WaitlistBody;
+export async function onRequestPost(context) {
+  let payload;
   try {
     payload = await context.request.json();
   } catch {
@@ -85,4 +73,4 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   return json(200, { ok: true });
-};
+}

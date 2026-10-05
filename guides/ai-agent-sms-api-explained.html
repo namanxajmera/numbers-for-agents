@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AI Agent SMS API Explained | Number for Agents</title>
+  <title>AI Agent SMS API Explained | Numbers for Agents</title>
   <meta name="description" content="Learn how SMS APIs work for AI agents: sending, receiving, webhooks, threading, delivery receipts, and design patterns for conversational text agents.">
   <link rel="canonical" href="https://numberforagents.com/guides/ai-agent-sms-api-explained.html">
   <meta name="theme-color" content="#0a0b0d">
@@ -13,7 +13,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="site-nav">
     <div class="container">
-      <a class="wordmark" href="/">Number for Agents</a>
+      <a class="wordmark" href="/">Numbers for Agents</a>
       <nav aria-label="Primary">
         <ul class="nav-links">
           <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Phone number guide</a></li>
@@ -61,7 +61,7 @@
 
       <h2>Rate limits and throughput</h2>
       <p>SMS is not infinite bandwidth. Campaigns need per-second caps and quiet hours. Conversational agents need concurrency limits so one viral post does not exhaust your account. Architect a small outbound queue with backoff.</p>
-      <p>Separate transactional traffic (receipts, 2FA you own end-to-end) from marketing blasts if your provider assigns different reputation pools. Number for Agents is aimed at conversational agent traffic, not bulk verification bypass.</p>
+      <p>Separate transactional traffic (receipts, 2FA you own end-to-end) from marketing blasts if your provider assigns different reputation pools. Numbers for Agents is aimed at conversational agent traffic, not bulk verification bypass.</p>
 
       <h2>Design patterns that work</h2>
       <p><strong>Human handoff.</strong> When confidence is low, reply with a short message and create an internal task. Include a link or ask the user to reply CALL for a voice handoff if you also run <a href="/guides/how-ai-voice-agents-receive-phone-calls.html">voice plumbing</a>.</p>
@@ -72,7 +72,7 @@
       <p>Never trust inbound body text as instructions to your agent without scoping tools. A stranger texting “ignore previous instructions” should not delete data. Use tool allowlists and separate system prompts from user content.</p>
       <p>Rotate API keys. Restrict send permissions to backend services, not mobile clients. Log redacted payloads for audit.</p>
 
-      <h2>How this maps to Number for Agents</h2>
+      <h2>How this maps to Numbers for Agents</h2>
       <p>Our API will expose message send, inbound webhooks, and per-number configuration consistent with the voice side of the product. You provision a line once, then use the same number for SMS and calls if you enable both capabilities. Start with <a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">how to give your AI agent a phone number</a>, then <a href="/#waitlist">join the waitlist</a> for beta access.</p>
 
       <aside class="guide-related">
@@ -80,7 +80,7 @@
         <ul>
           <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">How to give your AI agent a phone number</a></li>
           <li><a href="/guides/how-ai-voice-agents-receive-phone-calls.html">How AI voice agents receive phone calls</a></li>
-          <li><a href="/">Number for Agents home</a></li>
+          <li><a href="/">Numbers for Agents home</a></li>
         </ul>
       </aside>
     </article>
@@ -89,7 +89,7 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
-      <p>&copy; 2026 Number for Agents</p>
+      <p>&copy; 2026 Numbers for Agents</p>
     </div>
   </footer>
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>
