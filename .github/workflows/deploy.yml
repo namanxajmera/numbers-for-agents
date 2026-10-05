@@ -12,14 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Inject Web Analytics token (optional)
-        env:
-          CF_WEB_ANALYTICS_TOKEN: ${{ secrets.CF_WEB_ANALYTICS_TOKEN }}
-        run: |
-          if [ -n "$CF_WEB_ANALYTICS_TOKEN" ]; then
-            find . -name '*.html' -print0 | xargs -0 sed -i "s/YOUR_BEACON_TOKEN/${CF_WEB_ANALYTICS_TOKEN}/g"
-          fi
-
       - name: Deploy to Cloudflare Pages
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

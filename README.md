@@ -6,7 +6,7 @@ Demand-validation landing page and waitlist for [numberforagents.com](https://nu
 
 **Push to `main` → GitHub Actions deploys to Cloudflare Pages.**
 
-Repo secrets `CLOUDFLARE_API_TOKEN` and `CF_WEB_ANALYTICS_TOKEN` are already configured. To rotate: `cf user tokens create` (Pages + Workers Scripts + D1 write) and `gh secret set`; Web Analytics: `cf rum site-info create --host numberforagents.com --zone-tag <zone_id> --auto-install true`.
+Repo secret `CLOUDFLARE_API_TOKEN` is configured. To rotate: `cf user tokens create` (Pages + Workers Scripts + D1 write) and `gh secret set`.
 
 Local deploy (uses your `cf login` session): `npx wrangler pages deploy . --project-name=numbers-for-agents`
 
@@ -34,6 +34,23 @@ cf dns records create --zone numberforagents.com --body '{
 ```
 
 4. Verify in Search Console, then submit sitemap: `https://numberforagents.com/sitemap.xml`
+
+## Analytics (visitors vs bots)
+
+**Use Web Analytics for humans** (not zone **Traffic → Visitors**, which counts scanners).
+
+| Dashboard | What it is |
+|-----------|------------|
+| **Analytics & logs → Web Analytics → numberforagents.com** | Page views, visits, referrers, countries (best visitor view). |
+| **Security → Events** | Blocked probes, bot scores. |
+| **Workers & Pages → numbers-for-agents → Metrics** | `/api/waitlist` requests. |
+| **D1 `waitlist` table** | Real signups. |
+
+Beacon is injected by Cloudflare (**zone auto-install** + **Pages Web Analytics token**). No HTML snippet in the repo.
+
+WAF custom ruleset **numberforagents security** blocks `.env` probes, known scanner user agents, and bad `host:port` traffic. **Always Use HTTPS** is on.
+
+Re-apply or inspect via API: see `scripts/cf-visitor-insights.sh`.
 
 ## Waitlist API
 
