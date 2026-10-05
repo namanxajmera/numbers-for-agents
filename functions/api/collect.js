@@ -1,4 +1,5 @@
 import {
+  classifyRequest,
   ensureAnalyticsSchema,
   recordHit,
   utcDay,
@@ -38,7 +39,7 @@ async function overDailyLimit(db, request) {
   const row = await db
     .prepare(
       `SELECT COUNT(*) AS n FROM analytics_hits
-       WHERE day = ? AND visitor = ? AND kind = 'js'`
+       WHERE day = ? AND visitor = ?`
     )
     .bind(day, visitor)
     .first();
@@ -76,10 +77,11 @@ function parseBeacon(text) {
 async function store(db, request, beacon) {
   await ensureAnalyticsSchema(db);
   if (await overDailyLimit(db, request)) return;
-  await recordHit(db, request, { kind: "js", ...beacon });
+  await recordHit(db, request, { bucket: "human", agent: null, ...beacon });
 }
 
 // POST /api/collect — page-view beacon from /analytics.js.
+// Stores human views only. Bots are stored by _middleware.js.
 // Always answers 204 so callers cannot probe the limits.
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -95,6 +97,8 @@ export async function onRequestPost(context) {
   if (text.length > MAX_BODY_BYTES) return noContent();
   const beacon = parseBeacon(text);
   if (!beacon) return noContent();
+  // A headless or cloud browser ran the script. The middleware already logged it.
+  if (classifyRequest(request).bucket !== "human") return noContent();
 
   context.waitUntil(
     store(env.DB, request, beacon).catch((err) =>

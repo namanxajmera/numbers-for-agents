@@ -2,6 +2,7 @@
 # End-to-end test for first-party analytics.
 # Starts `wrangler pages dev` on a throwaway local D1, sends real HTTP requests
 # as a browser, AI crawler, search engine, and script, then checks the rows.
+# Expected: each human view is one beacon row, each bot view is one server row.
 # Usage: bash scripts/e2e-analytics.sh
 set -euo pipefail
 
@@ -58,7 +59,7 @@ if curl -s -m 2 -o /dev/null "$BASE/"; then
 fi
 
 echo "Starting pages dev on :$PORT"
-"${WRANGLER[@]}" pages dev . --port "$PORT" --persist-to "$STATE" >"$LOG" 2>&1 &
+"${WRANGLER[@]}" pages dev public --port "$PORT" --persist-to "$STATE" >"$LOG" 2>&1 &
 SERVER_PID=$!
 # HEAD requests are not logged, so the readiness probe leaves no row.
 for _ in $(seq 1 90); do
@@ -76,7 +77,8 @@ check "Googlebot GET robots.txt" 200 "$(get "$GOOGLEBOT" "/robots.txt")"
 check "curl GET /" 200 "$(get "curl/8.7.1" "/")"
 get "$CHROME" "/styles.css" >/dev/null
 get "$CHROME" "/guides/.env" >/dev/null
-check "beacon accepted" 204 "$(beacon '{"p":"/","q":"?utm_source=newsletter","r":"https://www.google.com/"}')"
+check "beacon accepted" 204 "$(beacon '{"p":"/","q":"?utm_source=newsletter&utm_medium=email&utm_campaign=launch","r":"https://www.google.com/"}')"
+check "headless-browser beacon still 204" 204 "$(beacon '{"p":"/headless"}' -A 'Mozilla/5.0 HeadlessChrome/140.0.0.0')"
 check "bad beacon still 204" 204 "$(beacon 'not json')"
 check "cross-origin beacon still 204" 204 "$(beacon '{"p":"/x"}' -H 'Origin: https://evil.example')"
 check "probe-path beacon still 204" 204 "$(beacon '{"p":"/.env"}')"
@@ -92,17 +94,17 @@ sleep 3 # let waitUntil writes finish
 echo "Checking rows"
 ROW="$("${WRANGLER[@]}" d1 execute waitlist --local --persist-to "$STATE" --json --command "
 SELECT
-  (SELECT COUNT(*) FROM analytics_hits WHERE kind='edge' AND bucket='human') AS edge_human,
+  (SELECT COUNT(*) FROM analytics_hits WHERE path='/' AND bucket='human') AS home_views,
+  (SELECT COUNT(*) FROM analytics_hits WHERE bucket='human' AND status IS NOT NULL) AS human_from_server,
   (SELECT group_concat(agent || ' ' || path) FROM analytics_hits WHERE bucket='ai') AS ai,
   (SELECT group_concat(agent || ' ' || path) FROM analytics_hits WHERE bucket='search') AS search,
   (SELECT group_concat(agent) FROM analytics_hits WHERE bucket='tool') AS tool,
   (SELECT COUNT(*) FROM analytics_hits WHERE path LIKE '%.css' OR path LIKE '%.env' OR path LIKE '/api/%') AS unwanted,
   (SELECT utm_source || '|' || utm_medium || '|' || utm_campaign || '|' || ref_host
-     FROM analytics_hits WHERE kind='edge' AND utm_source IS NOT NULL) AS edge_utm,
-  (SELECT utm_source || '|' || ref_host FROM analytics_hits WHERE kind='js' AND path='/') AS js_row,
-  (SELECT COUNT(*) FROM analytics_hits WHERE kind='js' AND path NOT IN ('/', '/rate-test')) AS bad_beacons,
+     FROM analytics_hits WHERE bucket='human' AND path='/') AS human_row,
+  (SELECT COUNT(*) FROM analytics_hits WHERE path NOT IN ('/', '/rate-test', '/robots.txt', '$GUIDE')) AS bad_beacons,
   (SELECT COUNT(*) FROM analytics_hits WHERE bucket='human' AND visitor IS NULL) AS human_no_hash,
-  (SELECT COUNT(*) FROM analytics_hits WHERE bucket NOT IN ('human','datacenter') AND visitor IS NOT NULL) AS bot_hash,
+  (SELECT COUNT(*) FROM analytics_hits WHERE bucket!='human' AND visitor IS NOT NULL) AS bot_hash,
   (SELECT COUNT(DISTINCT visitor) FROM analytics_hits WHERE bucket='human') AS human_visitors,
   (SELECT COUNT(*) FROM pragma_table_info('analytics_hits') WHERE name LIKE '%ip%') AS ip_columns,
   (SELECT COUNT(*) FROM analytics_hits WHERE path='/rate-test') AS rate_rows
@@ -110,17 +112,17 @@ SELECT
 
 field() { jq -r --arg k "$1" '.[$k] // "" | tostring' <<<"$ROW"; }
 
-check "2 browser page loads logged at edge" 2 "$(field edge_human)"
+check "home page: 1 human view (beacon only, not double)" 1 "$(field home_views)"
+check "server never writes human rows" 0 "$(field human_from_server)"
 check "GPTBot logged as ai" "GPTBot $GUIDE" "$(field ai)"
 check "Googlebot logged as search" "Googlebot /robots.txt" "$(field search)"
 check "curl logged as tool" "curl" "$(field tool)"
 check "CSS, probe paths, API calls not logged" 0 "$(field unwanted)"
-check "edge UTM + referrer host" "hn|social|launch|news.ycombinator.com" "$(field edge_utm)"
-check "beacon UTM + referrer host" "newsletter|www.google.com" "$(field js_row)"
-check "invalid beacons not stored" 0 "$(field bad_beacons)"
+check "UTM + referrer host stored" "newsletter|email|launch|www.google.com" "$(field human_row)"
+check "invalid and headless beacons not stored" 0 "$(field bad_beacons)"
 check "humans get a visitor hash" 0 "$(field human_no_hash)"
 check "bots get no visitor hash" 0 "$(field bot_hash)"
-check "edge + beacon share one visitor" 1 "$(field human_visitors)"
+check "one human visitor" 1 "$(field human_visitors)"
 check "no IP column" 0 "$(field ip_columns)"
 RATE="$(field rate_rows)"
 check "rate limit caps burst (stored $RATE of 40)" yes "$( (( RATE > 0 && RATE <= 30 )) && echo yes || echo no)"

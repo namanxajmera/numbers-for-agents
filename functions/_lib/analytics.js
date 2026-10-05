@@ -1,8 +1,5 @@
 import { classify } from "./classify.js";
 
-// Buckets that get a visitor hash. Bots are counted by name, not by visitor.
-const HASHED_BUCKETS = new Set(["human", "datacenter"]);
-
 let schemaReady = null;
 
 export function ensureAnalyticsSchema(db) {
@@ -14,7 +11,6 @@ export function ensureAnalyticsSchema(db) {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ts TEXT NOT NULL,
             day TEXT NOT NULL,
-            kind TEXT NOT NULL,
             path TEXT NOT NULL,
             status INTEGER,
             bucket TEXT NOT NULL,
@@ -112,9 +108,17 @@ export function utcDay(now = new Date()) {
   return now.toISOString().slice(0, 10);
 }
 
+/** Returns { bucket, agent } for this request. See classify.js. */
+export function classifyRequest(request) {
+  const cf = request.cf || {};
+  return classify(request.headers.get("User-Agent"), cf.asn);
+}
+
 /**
- * Writes one analytics row.
- * hit: { kind: "edge" | "js", path, search, referrer, status }
+ * Writes one row for one page view.
+ * Humans are written by /api/collect (they run JavaScript).
+ * Everything else is written by _middleware.js. So each view is stored once.
+ * hit: { bucket, agent, path, search, referrer, status }
  */
 export async function recordHit(db, request, hit) {
   await ensureAnalyticsSchema(db);
@@ -123,28 +127,25 @@ export async function recordHit(db, request, hit) {
   const day = utcDay(now);
   const cf = request.cf || {};
   const ua = request.headers.get("User-Agent") || "";
-  const { bucket, agent } = classify(ua, cf.asn);
   const ownHost = new URL(request.url).hostname.toLowerCase();
   const utm = utmParams(hit.search);
-  const visitor = HASHED_BUCKETS.has(bucket)
-    ? await visitorHash(db, day, request)
-    : null;
+  const visitor =
+    hit.bucket === "human" ? await visitorHash(db, day, request) : null;
 
   await db
     .prepare(
       `INSERT INTO analytics_hits (
-        ts, day, kind, path, status, bucket, agent, visitor, ref_host,
+        ts, day, path, status, bucket, agent, visitor, ref_host,
         utm_source, utm_medium, utm_campaign, country, asn, as_org, ua
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
     .bind(
       now.toISOString().slice(0, 19).replace("T", " "),
       day,
-      hit.kind,
       clip(hit.path, 256),
       hit.status ?? null,
-      bucket,
-      agent,
+      hit.bucket,
+      hit.agent,
       visitor,
       referrerHost(hit.referrer, ownHost),
       utm.source,
@@ -156,6 +157,4 @@ export async function recordHit(db, request, hit) {
       clip(ua, 256)
     )
     .run();
-
-  return { bucket, visitor, day };
 }

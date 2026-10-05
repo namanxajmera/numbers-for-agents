@@ -10,14 +10,13 @@ CREATE TABLE IF NOT EXISTS waitlist (
 
 CREATE INDEX IF NOT EXISTS idx_waitlist_created_at ON waitlist (created_at);
 
--- First-party analytics. One row per page load.
--- kind: 'edge' = logged by functions/_middleware.js (bots + humans)
---       'js'   = sent by /analytics.js (browsers that run JavaScript)
+-- First-party analytics. One row per page view.
+-- Humans (bucket 'human') come from the /analytics.js beacon via /api/collect.
+-- All other buckets come from functions/_middleware.js (bots do not run JavaScript).
 CREATE TABLE IF NOT EXISTS analytics_hits (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   ts TEXT NOT NULL,
   day TEXT NOT NULL,
-  kind TEXT NOT NULL,
   path TEXT NOT NULL,
   status INTEGER,
   bucket TEXT NOT NULL,
