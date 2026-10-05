@@ -6,9 +6,9 @@ Demand-validation landing page and waitlist for [numberforagents.com](https://nu
 
 **Push to `main` → GitHub Actions deploys to Cloudflare Pages.**
 
-One required secret: [`CLOUDFLARE_API_TOKEN`](https://github.com/namanxajmera/numbers-for-agents/settings/secrets/actions) (API token with **Cloudflare Pages → Edit**).
+Repo secrets `CLOUDFLARE_API_TOKEN` and `CF_WEB_ANALYTICS_TOKEN` are already configured. To rotate: `cf user tokens create` (Pages + Workers Scripts + D1 write) and `gh secret set`; Web Analytics: `cf rum site-info create --host numberforagents.com --zone-tag <zone_id> --auto-install true`.
 
-Optional: `CF_WEB_ANALYTICS_TOKEN` (beacon token from dashboard **Web Analytics** for `numberforagents.com`).
+Local deploy (uses your `cf login` session): `cf pages deploy . --project-name=numbers-for-agents`
 
 ## Local development
 
