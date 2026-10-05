@@ -19,6 +19,19 @@ cf zone settings always_use_https "$ZONE_ID" on
 # Pages project beacon (pages.dev + custom domains)
 cf pages project update "$PROJECT" --web-analytics-token="$TOKEN"
 
+# SEO vs noise: allow Google + AI search/user; block training scrapers + junk content bots
+cf bot-management update -z "$ZONE_NAME" \
+  --ai-training=block \
+  --ai-search=disabled \
+  --ai-user=disabled \
+  --ai-bots-protection=disabled \
+  --content-bots-protection=block \
+  --crawler-protection=disabled \
+  --fight-mode=false \
+  --is-robots-txt-managed=true \
+  --bot-preference-sync-enabled=true \
+  --auto-update-model=true
+
 # List WAF custom rules (created via API as ruleset phase http_request_firewall_custom)
 cf ruleset list --zone-id="$ZONE_ID" 2>/dev/null || true
 

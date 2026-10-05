@@ -50,6 +50,8 @@ Beacon is injected by Cloudflare (**zone auto-install** + **Pages Web Analytics 
 
 WAF custom ruleset **numberforagents security** blocks `.env` probes, known scanner user agents, and bad `host:port` traffic. **Always Use HTTPS** is on.
 
+**Bots / AI (SEO vs noise):** AI **training** bots blocked; **search** + **user** assistants allowed; **content** bots blocked at edge; **Bot Fight Mode** off (keeps Google/Bing safe). Managed `robots.txt` prepends CF policy to your sitemap line.
+
 Re-apply or inspect via API: see `scripts/cf-visitor-insights.sh`.
 
 ## Waitlist API
