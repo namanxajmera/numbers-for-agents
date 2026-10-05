@@ -8,7 +8,7 @@ Demand-validation landing page and waitlist for [numberforagents.com](https://nu
 
 Repo secrets `CLOUDFLARE_API_TOKEN` and `CF_WEB_ANALYTICS_TOKEN` are already configured. To rotate: `cf user tokens create` (Pages + Workers Scripts + D1 write) and `gh secret set`; Web Analytics: `cf rum site-info create --host numberforagents.com --zone-tag <zone_id> --auto-install true`.
 
-Local deploy (uses your `cf login` session): `cf pages deploy . --project-name=numbers-for-agents`
+Local deploy (uses your `cf login` session): `npx wrangler pages deploy . --project-name=numbers-for-agents`
 
 ## Local development
 
