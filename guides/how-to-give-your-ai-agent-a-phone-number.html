@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Give Your AI Agent a Phone Number | Number for Agents</title>
+  <meta name="description" content="A practical guide to provisioning a real phone line for an AI agent: API steps, webhooks, compliance basics, and how to connect your voice stack.">
+  <link rel="canonical" href="https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number.html">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Number for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/#how-it-works">How it works</a></li>
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/guides/ai-agent-sms-api-explained.html">SMS guide</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <h1>How to give your AI agent a phone number</h1>
+        <p class="guide-meta">Updated October 2026 · About 8 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <p>People expect to reach businesses by phone and text. If your product is an AI agent, a public number is often the simplest interface. This guide explains what that number does in your architecture, how to provision it through an API, and what you need before you go live.</p>
+
+      <h2>Why agents need their own line</h2>
+      <p>A dedicated number separates your agent from personal phones and shared inboxes. Callers see a stable identity. Your backend can route every SMS and call to the same webhook URL. You can scale to multiple agents later by assigning one number per agent or per customer account.</p>
+      <p>The number is not the brain of the agent. It is the front door. Speech recognition, language models, tools, and business rules stay in your stack. The telecom layer delivers events and audio streams so your code can respond.</p>
+
+      <h2>What you are buying from a telecom API</h2>
+      <p>Developer-focused phone APIs typically offer four building blocks:</p>
+      <ul>
+        <li><strong>Provisioning</strong> — search available numbers and attach them to your project.</li>
+        <li><strong>Messaging</strong> — send and receive SMS (and sometimes MMS) with status callbacks.</li>
+        <li><strong>Voice</strong> — place and receive calls, often with SIP or WebSocket media.</li>
+        <li><strong>Webhooks</strong> — HTTP POST payloads when messages arrive or call state changes.</li>
+      </ul>
+      <p>Number for Agents focuses on this plumbing. We do not ship a bundled voice assistant. You connect Bland, Vapi, Retell, your own model, or a custom SIP endpoint.</p>
+
+      <h2>Step 1: Define the agent’s job on the phone</h2>
+      <p>Write down the inbound and outbound flows before you touch an API. Examples: answer FAQs, book meetings, confirm orders, or warm-transfer to a human. Outbound might be appointment reminders or follow-ups after a form submit.</p>
+      <p>Each flow implies different capabilities. Pure SMS support needs messaging only. A hotline that answers with speech needs voice plus a media path into your runtime. Clarity here saves rework when you pick number capabilities.</p>
+
+      <h2>Step 2: Provision a number via API</h2>
+      <p>Most APIs follow the same pattern: authenticate with a bearer token, POST to a <code>/numbers</code> or similar resource, and receive an E.164 phone number plus an internal ID. You set a webhook URL for inbound SMS and another for voice events (or one URL with a type field).</p>
+      <p>Store the number ID in your database next to the user or agent record. Never hard-code the E.164 string in multiple services. If you swap numbers during testing, one ID field updates everywhere.</p>
+
+      <h2>Step 3: Wire webhooks on your server</h2>
+      <p>Your HTTPS endpoint should verify signatures from the provider, return quickly, and push heavy work to a queue. For SMS, parse the sender, body, and conversation ID, then call your agent logic. For voice, the first webhook may only announce that a call started; you respond with instructions to connect media.</p>
+      <p>Use idempotency keys or deduplication on webhook IDs. Telecom providers retry on timeouts. Your handler must tolerate duplicates without sending two replies.</p>
+
+      <h2>Step 4: Connect your voice stack</h2>
+      <p>For phone calls, audio must flow between the caller and your agent. Common patterns include:</p>
+      <ul>
+        <li><strong>WebSocket media</strong> — your server receives encoded audio frames and sends synthesized speech back.</li>
+        <li><strong>SIP</strong> — you register a trunk or URI that your voice platform already supports.</li>
+        <li><strong>CPaaS bridge</strong> — some teams forward to an existing Twilio or carrier leg; the agent API still owns the public number.</li>
+      </ul>
+      <p>Pick the path that matches your latency budget and the SDKs you already run in production. For a deeper walkthrough of inbound calls, see <a href="/guides/how-ai-voice-agents-receive-phone-calls.html">how AI voice agents receive phone calls</a>.</p>
+
+      <h2>Step 5: Test like a real user</h2>
+      <p>Call and text the number from a mobile phone. Test voicemail, interrupted speech, and background noise. Log webhook bodies in staging so you can replay failures. Check SMS and call limits before large campaigns.</p>
+
+      <h2>Compliance and acceptable use</h2>
+      <p>Telecom is regulated. You need consent for many outbound texts and calls. Publish a clear privacy policy and honor opt-out keywords. Product-facing agent lines for support and scheduling are in scope for platforms like Number for Agents.</p>
+      <p>We are not an OTP or verification-bypass service. Do not use agent numbers to defeat SMS verification on third-party apps. Build flows where the user expects to hear from your agent.</p>
+
+      <h2>What to do next</h2>
+      <p>If you are designing SMS-first agents, read <a href="/guides/ai-agent-sms-api-explained.html">AI agent SMS API explained</a>. When you are ready to provision lines through our API, <a href="/#waitlist">join the waitlist</a> for early access and pricing.</p>
+
+      <aside class="guide-related">
+        <h2>Related guides</h2>
+        <ul>
+          <li><a href="/guides/ai-agent-sms-api-explained.html">AI agent SMS API explained</a></li>
+          <li><a href="/guides/how-ai-voice-agents-receive-phone-calls.html">How AI voice agents receive phone calls</a></li>
+          <li><a href="/">Number for Agents home</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <p>&copy; 2026 Number for Agents</p>
+    </div>
+  </footer>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Agent SMS API Explained | Number for Agents</title>
+  <meta name="description" content="Learn how SMS APIs work for AI agents: sending, receiving, webhooks, threading, delivery receipts, and design patterns for conversational text agents.">
+  <link rel="canonical" href="https://numberforagents.com/guides/ai-agent-sms-api-explained.html">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Number for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Phone number guide</a></li>
+          <li><a href="/#features">Features</a></li>
+          <li><a href="/#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <h1>AI agent SMS API explained</h1>
+        <p class="guide-meta">Updated October 2026 · About 7 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <p>SMS is still the lowest-friction channel for many users. An AI agent that texts back within seconds can handle scheduling, order updates, and tier-one support without forcing someone to install an app. This article explains how SMS APIs fit into agent architecture and what to implement on your server.</p>
+
+      <h2>Outbound SMS: the send endpoint</h2>
+      <p>Outbound messages usually start with a POST request. You pass a <code>from</code> number your project owns, a <code>to</code> number in E.164 format, and a <code>body</code> string. The API returns a message ID you store for tracking.</p>
+      <p>Agents rarely send static text only. Your flow is: user event or cron triggers agent reasoning, the model drafts a reply, you truncate to SMS length limits (160 GSM characters per segment, longer messages split into multiple parts), then you call the send endpoint. Keep templates for regulated content such as opt-out language where required.</p>
+
+      <h2>Inbound SMS: webhooks to your agent</h2>
+      <p>When someone texts your agent number, the provider POSTs a webhook to your configured URL. Typical fields include sender, recipient, body text, a message ID, and a conversation or thread key. Your handler should:</p>
+      <ol>
+        <li>Validate the signature header.</li>
+        <li>Normalize phone numbers to E.164.</li>
+        <li>Load conversation history from your database.</li>
+        <li>Invoke the agent with the new user turn.</li>
+        <li>Send the model’s reply via the outbound API.</li>
+      </ol>
+      <p>Return HTTP 200 quickly even if the agent runs asynchronously. Long model calls should not block the webhook thread. Queue the work and send the SMS when inference completes.</p>
+
+      <h2>Threading and memory</h2>
+      <p>Users expect continuity. Map each pair of (your_number, their_number) to a thread ID. Append inbound and outbound bodies with timestamps. Pass the last N messages into your prompt or use a summarization step for long threads.</p>
+      <p>Multi-agent products should scope threads per tenant. A mistake here leaks one customer’s chat into another’s context. Enforce tenant ID in every query.</p>
+
+      <h2>Delivery receipts and failures</h2>
+      <p>Carriers report queued, sent, delivered, or failed states on separate callbacks. Use them to retry transient failures and to stop messaging invalid numbers. Agents that promise “I’ll text you the link” should confirm delivery before closing a ticket.</p>
+      <p>Hard bounces often mean the user changed numbers or blocked your sender. Surface that to your CRM instead of letting the model retry forever.</p>
+
+      <h2>Rate limits and throughput</h2>
+      <p>SMS is not infinite bandwidth. Campaigns need per-second caps and quiet hours. Conversational agents need concurrency limits so one viral post does not exhaust your account. Architect a small outbound queue with backoff.</p>
+      <p>Separate transactional traffic (receipts, 2FA you own end-to-end) from marketing blasts if your provider assigns different reputation pools. Number for Agents is aimed at conversational agent traffic, not bulk verification bypass.</p>
+
+      <h2>Design patterns that work</h2>
+      <p><strong>Human handoff.</strong> When confidence is low, reply with a short message and create an internal task. Include a link or ask the user to reply CALL for a voice handoff if you also run <a href="/guides/how-ai-voice-agents-receive-phone-calls.html">voice plumbing</a>.</p>
+      <p><strong>Structured actions.</strong> Ask users to reply with digits for choices. Models parse natural language, but explicit options reduce errors on slow connections.</p>
+      <p><strong>Quiet hours.</strong> Store the user’s timezone. Defer non-urgent outbound texts to morning local time.</p>
+
+      <h2>Security basics</h2>
+      <p>Never trust inbound body text as instructions to your agent without scoping tools. A stranger texting “ignore previous instructions” should not delete data. Use tool allowlists and separate system prompts from user content.</p>
+      <p>Rotate API keys. Restrict send permissions to backend services, not mobile clients. Log redacted payloads for audit.</p>
+
+      <h2>How this maps to Number for Agents</h2>
+      <p>Our API will expose message send, inbound webhooks, and per-number configuration consistent with the voice side of the product. You provision a line once, then use the same number for SMS and calls if you enable both capabilities. Start with <a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">how to give your AI agent a phone number</a>, then <a href="/#waitlist">join the waitlist</a> for beta access.</p>
+
+      <aside class="guide-related">
+        <h2>Related guides</h2>
+        <ul>
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">How to give your AI agent a phone number</a></li>
+          <li><a href="/guides/how-ai-voice-agents-receive-phone-calls.html">How AI voice agents receive phone calls</a></li>
+          <li><a href="/">Number for Agents home</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <p>&copy; 2026 Number for Agents</p>
+    </div>
+  </footer>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>
+</body>
+</html>

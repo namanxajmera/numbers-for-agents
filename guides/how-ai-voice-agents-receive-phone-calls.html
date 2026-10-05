@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How AI Voice Agents Receive Phone Calls | Number for Agents</title>
+  <meta name="description" content="Understand inbound call flow for AI agents: webhooks, SIP, WebSocket media, latency, handoff to humans, and how to bring your own voice stack.">
+  <link rel="canonical" href="https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Number for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Phone number guide</a></li>
+          <li><a href="/guides/ai-agent-sms-api-explained.html">SMS guide</a></li>
+          <li><a href="/#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <h1>How AI voice agents receive phone calls</h1>
+        <p class="guide-meta">Updated October 2026 · About 8 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <p>Voice is the hardest channel for agents because audio is real time. Callers tolerate only a short pause after they stop speaking. This guide walks through what happens when someone dials your agent’s number and how your code joins the call without buying a bundled voice platform.</p>
+
+      <h2>The call timeline</h2>
+      <p>A typical inbound flow looks like this:</p>
+      <ol>
+        <li>The public switched telephone network routes the call to your provider.</li>
+        <li>The provider hits your voice webhook with <code>call.started</code> (names vary by API).</li>
+        <li>Your server responds with how to handle audio: connect WebSocket, dial SIP, play a prompt, or reject.</li>
+        <li>Once media is up, your STT → model → TTS loop runs until hangup or transfer.</li>
+        <li>A final webhook reports duration, disposition, and recording URLs if enabled.</li>
+      </ol>
+      <p>Each step must complete in hundreds of milliseconds where possible. Cold starts on serverless functions are a common failure mode. Warm pools or dedicated workers for voice webhooks pay off quickly.</p>
+
+      <h2>Webhooks vs media paths</h2>
+      <p>Webhooks carry JSON metadata only. They do not include the caller’s voice. After you accept a call, you need a <strong>media path</strong>:</p>
+      <ul>
+        <li><strong>WebSocket streaming</strong> — bidirectional audio frames encoded as PCM or Opus. Your agent service reads frames, runs VAD and STT, streams TTS back.</li>
+        <li><strong>SIP</strong> — you return a SIP URI or the provider bridges to your registered trunk. Useful if you already host FreeSWITCH, Asterisk, or a CPaaS that speaks SIP.</li>
+      </ul>
+      <p>Some teams mix both: webhook for state, WebSocket for media. Others send SIP directly to Retell, Vapi, or a custom orchestrator. Number for Agents stays neutral — we deliver the call leg; you choose the brain.</p>
+
+      <h2>Answering logic your agent must implement</h2>
+      <p>On <code>call.started</code>, decide:</p>
+      <ul>
+        <li>Should this caller reach the agent or a human queue?</li>
+        <li>Is the number in business hours?</li>
+        <li>Do you need a short disclosure (“This call may be recorded”)?</li>
+      </ul>
+      <p>Return a machine-readable instruction object. Examples: <code>connect_media</code> with a WebSocket URL, <code>transfer</code> to a PSTN number, or <code>hangup</code> with a cause code. Keep responses idempotent; providers may retry the initial webhook.</p>
+
+      <h2>Latency budget</h2>
+      <p>Users perceive delays over ~700 ms as awkward. Budget time across:</p>
+      <ul>
+        <li>Network round trip from carrier to your region.</li>
+        <li>Speech-to-text partial results.</li>
+        <li>Model inference (use streaming tokens).</li>
+        <li>Text-to-speech first byte.</li>
+      </ul>
+      <p>Start TTS on the first fluent phrase instead of waiting for the full completion. Barge-in (caller interrupts) requires cancelling in-flight TTS and clearing buffers — plan for it in your media handler.</p>
+
+      <h2>Outbound calls from the same number</h2>
+      <p>Agents that both receive and place calls should present the same caller ID for trust. Outbound usually starts with an API request specifying <code>from</code>, <code>to</code>, and a URL that returns voice instructions when the callee answers. Symmetry simplifies compliance records: one number, one opt-in story.</p>
+      <p>For SMS on the same line, read <a href="/guides/ai-agent-sms-api-explained.html">AI agent SMS API explained</a> and provision capabilities together when you <a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">give your agent a phone number</a>.</p>
+
+      <h2>Recordings, voicemail, and logs</h2>
+      <p>Product teams often want call logs even when the agent is automated. Store call ID, timestamps, outcome, and redacted transcripts. Voicemail can be a fallback when your agent errors: redirect to record-after-beep, then process the file with the same STT pipeline.</p>
+      <p>Tell callers when recording happens. Follow local laws for two-party consent regions.</p>
+
+      <h2>Human handoff</h2>
+      <p>Design an explicit transfer path. When sentiment drops or the user asks for a person, your webhook should issue a transfer instruction with a target queue or phone number. The AI should stop speaking immediately after transfer starts to avoid talking over the human.</p>
+
+      <h2>Testing inbound voice</h2>
+      <p>Use real handsets, not only softphones. Test weak cell signal, speakerphone, and accented speech. Automate regression with recorded WAV files injected into your media layer where possible.</p>
+      <p>Monitor webhook latency and media connect time as first-class metrics. Alert when P95 exceeds your budget.</p>
+
+      <h2>Where Number for Agents fits</h2>
+      <p>We focus on number provisioning, inbound/outbound call events, SIP trunking, and WebSocket media bridges — not on selling you a default voice model. Bring Bland, Vapi, Retell, or your own stack. <a href="/#waitlist">Join the waitlist</a> to shape the beta API and lock in early per-number pricing.</p>
+
+      <aside class="guide-related">
+        <h2>Related guides</h2>
+        <ul>
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">How to give your AI agent a phone number</a></li>
+          <li><a href="/guides/ai-agent-sms-api-explained.html">AI agent SMS API explained</a></li>
+          <li><a href="/">Number for Agents home</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <p>&copy; 2026 Number for Agents</p>
+    </div>
+  </footer>
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "YOUR_BEACON_TOKEN"}'></script>
+</body>
+</html>

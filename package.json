@@ -1,0 +1,12 @@
+{
+  "name": "number-for-agents",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler pages dev . --d1=DB=waitlist",
+    "db:local": "wrangler d1 execute waitlist --local --file=./schema.sql",
+    "db:remote": "wrangler d1 execute waitlist --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.147.0"
+  }
+}
