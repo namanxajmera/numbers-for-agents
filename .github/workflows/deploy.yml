@@ -1,0 +1,40 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: pages-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject Web Analytics and GSC tokens
+        env:
+          CF_WEB_ANALYTICS_TOKEN: ${{ secrets.CF_WEB_ANALYTICS_TOKEN }}
+          GSC_VERIFICATION_TOKEN: ${{ secrets.GSC_VERIFICATION_TOKEN }}
+        run: |
+          if [ -n "$CF_WEB_ANALYTICS_TOKEN" ]; then
+            find . -name '*.html' -print0 | xargs -0 sed -i "s/YOUR_BEACON_TOKEN/${CF_WEB_ANALYTICS_TOKEN}/g"
+          else
+            echo "CF_WEB_ANALYTICS_TOKEN not set; beacon placeholder left in HTML"
+          fi
+          if [ -n "$GSC_VERIFICATION_TOKEN" ]; then
+            find . -name '*.html' -print0 | xargs -0 sed -i "s/YOUR_VERIFICATION_TOKEN/${GSC_VERIFICATION_TOKEN}/g"
+          else
+            echo "GSC_VERIFICATION_TOKEN not set; GSC meta left as placeholder"
+          fi
+
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 1059848906e1914e349ac9f704bd60c6
+          command: pages deploy . --project-name=numbers-for-agents

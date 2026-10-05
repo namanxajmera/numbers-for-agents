@@ -42,29 +42,33 @@ wrangler d1 execute waitlist --remote --file=./schema.sql
 
 ## Deploy to Cloudflare Pages
 
-### Option A: Dashboard + Git
+Production project: **numbers-for-agents** on `numberforagents.com`. The `*.pages.dev` hostname is Cloudflare’s default (preview URLs and CLI deploys). You do not need to share it; the custom domain is what users and SEO should use.
 
-1. Push this repo to GitHub/GitLab.
-2. In Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** → connect the repo.
-3. Build settings:
-   - **Framework preset:** None
-   - **Build command:** (leave empty)
-   - **Build output directory:** `/` (repository root)
-4. Deploy.
+### GitHub Actions (recommended)
 
-### Option B: Wrangler CLI
+On every push to `master`, `.github/workflows/deploy.yml` runs `wrangler pages deploy`.
+
+Add these [repository secrets](https://github.com/namanxajmera/numbers-for-agents/settings/secrets/actions):
+
+| Secret | Purpose |
+| --- | --- |
+| `CLOUDFLARE_API_TOKEN` | API token with **Account → Cloudflare Pages → Edit** (and **Account → D1 → Edit** if you migrate via CLI). |
+| `CF_WEB_ANALYTICS_TOKEN` | Beacon token from **Web Analytics** (injected into all HTML at deploy time). |
+| `GSC_VERIFICATION_TOKEN` | HTML-tag value from Google Search Console (injected at deploy time). |
+
+Create the API token: Cloudflare dashboard → **My Profile** → **API Tokens** → **Create Token** → template **Edit Cloudflare Workers** (includes Pages), or custom with Pages + D1 edit.
+
+### Option B: Wrangler CLI (manual)
 
 ```bash
-wrangler pages project create numbers-for-agents --production-branch main
-wrangler pages deploy .
+wrangler pages deploy . --project-name=numbers-for-agents
 ```
 
-Bind D1 on the Pages project:
+D1 is bound via `wrangler.toml` (`DB` → `waitlist`). Remote schema: `wrangler d1 execute waitlist --remote --file=./schema.sql`.
 
-1. Dashboard → your Pages project → **Settings** → **Functions** → **D1 database bindings**.
-2. Variable name: `DB`, database: `waitlist` (same as `wrangler.toml`).
+### Option C: Cloudflare dashboard Git (optional)
 
-Or add binding in `wrangler.toml` (already present) and ensure `database_id` matches the created database.
+Instead of Actions, you can connect the repo under **Workers & Pages** → **numbers-for-agents** → **Settings** → **Builds** → **Connect to Git**. Use **Framework preset: None**, empty build command, output directory `/`. You still need Web Analytics and GSC tokens in HTML (or use the GitHub secrets + Actions workflow above).
 
 ## Custom domain
 
@@ -74,22 +78,21 @@ Or add binding in `wrangler.toml` (already present) and ensure `database_id` mat
 
 ## Google Search Console
 
-1. Add property for `https://numberforagents.com`.
-2. Choose **HTML tag** verification.
-3. In `index.html`, uncomment and set:
+1. Open [Search Console](https://search.google.com/search-console) → **Add property** → URL prefix `https://numberforagents.com`.
+2. Choose **HTML tag** verification. Copy only the `content="..."` value (not the whole tag).
+3. Add GitHub secret `GSC_VERIFICATION_TOKEN` with that value, push to `master` (or replace `YOUR_VERIFICATION_TOKEN` in `index.html` and redeploy).
+4. Click **Verify** in Search Console.
+5. **Sitemaps** → submit `https://numberforagents.com/sitemap.xml`.
 
-```html
-<meta name="google-site-verification" content="YOUR_VERIFICATION_TOKEN" />
-```
-
-4. Redeploy, then click **Verify** in Search Console.
-5. Submit sitemap: `https://numberforagents.com/sitemap.xml`.
+**Alternative:** DNS verification — add the TXT record Google gives you in the `numberforagents.com` zone (often faster if you skip the meta tag).
 
 ## Cloudflare Web Analytics
 
-1. Dashboard → **Web Analytics** → add site `numberforagents.com`.
-2. Copy the beacon token.
-3. Replace `YOUR_BEACON_TOKEN` in `index.html` and guide pages (or use a single shared include pattern later).
+1. Dashboard → **Web Analytics** → **Add a site** → host `numberforagents.com` (cookieless beacon).
+2. Copy the **token** from the install snippet.
+3. Add GitHub secret `CF_WEB_ANALYTICS_TOKEN`, push to `master`. The workflow replaces `YOUR_BEACON_TOKEN` in every HTML file before deploy.
+
+View traffic: **Web Analytics** in the dashboard (not the zone’s older “Analytics” tab).
 
 ## Waitlist API
 
