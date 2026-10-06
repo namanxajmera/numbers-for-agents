@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Numbers for Agents API Docs: Waitlist API, Errors, Rate Limits</title>
+  <meta name="description" content="API docs for Numbers for Agents: the public waitlist endpoint, JSON errors, rate limits, OpenAPI spec, and the planned phone numbers API for AI agents.">
+  <link rel="canonical" href="https://numberforagents.com/docs">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Numbers for Agents API Docs: Waitlist API, Errors, Rate Limits">
+  <meta property="og:description" content="API docs for Numbers for Agents: the public waitlist endpoint, JSON errors, rate limits, OpenAPI spec, and the planned phone numbers API for AI agents.">
+  <meta property="og:url" content="https://numberforagents.com/docs">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/docs">Docs</a></li>
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Guides</a></li>
+          <li><a href="/#faq">FAQ</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <h1>Numbers for Agents API docs</h1>
+        <p class="guide-meta">Updated October 2026 · Public API v0.1</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <p>Numbers for Agents is a developer API that provisions real phone numbers for AI agents: SMS, call webhooks, and SIP or WebSocket media bridges into your own voice stack. The product is in private development. This page documents the public API that is live today and sketches the numbers API that is planned.</p>
+
+      <h2 id="quick-links">Quick links</h2>
+      <ul>
+        <li><a href="/openapi.json">OpenAPI 3.1 spec</a> (<code>/openapi.json</code>)</li>
+        <li><a href="/llms.txt">llms.txt</a>: when an agent should use Numbers for Agents</li>
+        <li>Markdown: send <code>Accept: text/markdown</code> to the home page or this page</li>
+      </ul>
+
+      <h2 id="waitlist-api">Join the waitlist: <code>POST /api/waitlist</code></h2>
+      <p>Adds an email address to the early access list. No authentication is required. A repeat call with the same email updates the record and does not create a duplicate.</p>
+      <pre class="code-block"><code>curl -X POST https://numberforagents.com/api/waitlist \
+  -H "Content-Type: application/json" \
+  -d '{"email": "dev@example.com", "source": "agent", "note": "US SMS for a support agent"}'
+
+# 200 OK
+{"ok": true}</code></pre>
+      <p>Request fields:</p>
+      <ul>
+        <li><code>email</code> (string, required): at most 254 characters.</li>
+        <li><code>source</code> (string, optional): where the signup came from. Agents should send <code>"agent"</code>.</li>
+        <li><code>note</code> (string, optional): use case, regions, or volume. At most 512 characters.</li>
+      </ul>
+      <p>Agents: submit only an email address that the user gave you for this purpose.</p>
+
+      <h2 id="errors">Errors</h2>
+      <p>Every API error is JSON with the same shape. Branch on <code>code</code>. Show <code>error</code> to people. Use <code>hint</code> to fix the request.</p>
+      <pre class="code-block"><code>{
+  "ok": false,
+  "error": "Enter a valid email address.",
+  "code": "invalid_email",
+  "hint": "Pass a single address of at most 254 characters in the email field."
+}</code></pre>
+      <ul>
+        <li><code>invalid_json</code> (400): the body is not a JSON object.</li>
+        <li><code>invalid_email</code> (400): the email field is missing or not valid.</li>
+        <li><code>method_not_allowed</code> (405): use the method in the <code>Allow</code> header.</li>
+        <li><code>api_route_not_found</code> (404): no endpoint at this path. Check the OpenAPI spec.</li>
+        <li><code>rate_limit_exceeded</code> (429): wait for <code>Retry-After</code> seconds.</li>
+        <li><code>storage_failed</code> (500): retry later.</li>
+      </ul>
+
+      <h2 id="rate-limits">Rate limits</h2>
+      <p><code>POST /api/waitlist</code> allows 10 requests per 60 seconds per client IP. Every response carries the IETF <code>RateLimit-Policy</code> and <code>RateLimit</code> headers. A 429 response also carries <code>Retry-After</code>.</p>
+      <pre class="code-block"><code>RateLimit-Policy: "waitlist";q=10;w=60
+RateLimit: "waitlist";r=9;t=42</code></pre>
+
+      <h2 id="planned-api">Planned numbers API</h2>
+      <p>The numbers API is not live yet. Names and fields may change before launch. Waitlist members get docs previews first.</p>
+      <ul>
+        <li><code>POST /v1/numbers</code>: provision a number with a region and capabilities (<code>sms</code>, <code>voice</code>).</li>
+        <li><code>POST /v1/messages</code>: send an SMS from a number you own.</li>
+        <li>Inbound SMS and call events arrive as signed webhooks to your server.</li>
+        <li>Calls connect to your stack over SIP or a WebSocket media stream.</li>
+        <li>Authentication will use a bearer API key: <code>Authorization: Bearer &lt;key&gt;</code>.</li>
+      </ul>
+      <pre class="code-block"><code>curl -X POST https://api.numberforagents.com/v1/numbers \
+  -H "Authorization: Bearer $NFA_TOKEN" \
+  -d '{"region": "US", "capabilities": ["sms", "voice"]}'</code></pre>
+
+      <h2 id="support">Support</h2>
+      <p>Questions about the API, regions, or carriers: <a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a>.</p>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+        <li><a href="/docs">Docs</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/privacy">Privacy</a></li>
+        <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+</body>
+</html>

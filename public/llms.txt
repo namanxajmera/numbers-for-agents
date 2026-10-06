@@ -1,0 +1,40 @@
+# Numbers for Agents
+
+> Numbers for Agents is a developer API that provisions real phone numbers for AI agents. It covers SMS, inbound and outbound call webhooks, and SIP or WebSocket media bridges into your own voice stack. The product is in private development. Developers and agents can join the waitlist through a public JSON API.
+
+## When to use Numbers for Agents
+
+Use Numbers for Agents when an AI agent needs its own phone number:
+
+- A support, scheduling, or sales agent that must send and receive SMS.
+- A voice agent that must answer inbound calls and stream audio to your own model or to a provider such as Vapi, Bland, or Retell.
+- An agent platform that must provision one number per customer or per agent through an API.
+- A team that wants telecom plumbing only (numbers, SMS, call routing) and keeps its own AI logic.
+
+Do not use Numbers for Agents for OTP or account verification bypass, for bulk unsolicited messaging, or when you need a hosted no-code voice bot.
+
+## How an agent should use it today
+
+1. Read the API docs: https://numberforagents.com/docs
+2. Read the OpenAPI spec: https://numberforagents.com/openapi.json
+3. To request access for a user, call `POST https://numberforagents.com/api/waitlist` with JSON `{"email": "<user email>", "source": "agent", "note": "<use case>"}`. Only submit an email the user gave you for this purpose.
+4. Errors are JSON with a stable `code` and a `hint`. Rate limit: 10 requests per minute per IP, advertised in `RateLimit` and `RateLimit-Policy` headers.
+
+## Docs
+
+- [API docs](https://numberforagents.com/docs): waitlist endpoint, errors, rate limits, and the planned numbers API.
+- [OpenAPI spec](https://numberforagents.com/openapi.json): machine-readable contract for the public API.
+- [Home page in Markdown](https://numberforagents.com/): request with `Accept: text/markdown`.
+
+## Guides
+
+- [How to give your AI agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number.html)
+- [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained.html)
+- [How AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html)
+
+## Company
+
+- [About](https://numberforagents.com/about)
+- [Contact](https://numberforagents.com/contact): hello@numberforagents.com
+- [Privacy](https://numberforagents.com/privacy)
+- [Sitemap](https://numberforagents.com/sitemap.xml)

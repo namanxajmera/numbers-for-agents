@@ -6,6 +6,17 @@
   <title>Phone Numbers for AI Agents — API for Voice &amp; SMS | Numbers for Agents</title>
   <meta name="description" content="Provision real phone numbers for AI agents via API. SMS, calls, webhooks, SIP and WebSocket bridges. Bring your own voice stack. Join the waitlist.">
   <link rel="canonical" href="https://numberforagents.com/">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/index.md">
+  <link rel="service-desc" type="application/openapi+json" href="https://numberforagents.com/openapi.json">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="Give your AI agent a phone number | Numbers for Agents">
+  <meta property="og:description" content="An API that provisions real phone numbers for AI agents: SMS, call webhooks, SIP and WebSocket bridges.">
+  <meta property="og:url" content="https://numberforagents.com/">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#0a0b0d">
   <link rel="stylesheet" href="/styles.css">
   <script type="application/ld+json">
@@ -15,7 +26,25 @@
     "name": "Numbers for Agents",
     "url": "https://numberforagents.com",
     "email": "hello@numberforagents.com",
-    "description": "Developer API that provisions real phone numbers for AI agents with SMS, voice plumbing, webhooks, SIP, and WebSocket bridges."
+    "logo": "https://numberforagents.com/og.png",
+    "description": "Developer API that provisions real phone numbers for AI agents with SMS, voice plumbing, webhooks, SIP, and WebSocket bridges.",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "hello@numberforagents.com",
+      "url": "https://numberforagents.com/contact"
+    }
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebAPI",
+    "name": "Numbers for Agents API",
+    "description": "API that provisions real phone numbers for AI agents: SMS, call webhooks, SIP and WebSocket media bridges. In private development; the public waitlist API is live.",
+    "url": "https://numberforagents.com/",
+    "documentation": "https://numberforagents.com/docs",
+    "provider": { "@type": "Organization", "name": "Numbers for Agents", "url": "https://numberforagents.com" }
   }
   </script>
   <script type="application/ld+json">
@@ -93,6 +122,7 @@
         <ul class="nav-links">
           <li><a href="#how-it-works">How it works</a></li>
           <li><a href="#features">Features</a></li>
+          <li><a href="/docs">API docs</a></li>
           <li><a href="#faq">FAQ</a></li>
         </ul>
       </nav>
@@ -355,8 +385,12 @@ POST /agent/voice/inbound
     <div class="container footer-inner">
       <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
       <ul class="footer-links">
+        <li><a href="/docs">API docs</a></li>
         <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number.html">Guides</a></li>
-        <li><a href="#faq">FAQ</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/contact">Contact</a></li>
+        <li><a href="/privacy">Privacy</a></li>
+        <li><a href="/llms.txt">llms.txt</a></li>
       </ul>
       <p>&copy; 2026 Numbers for Agents</p>
     </div>
