@@ -19,13 +19,13 @@ cf zone settings always_use_https "$ZONE_ID" on
 # Pages project beacon (pages.dev + custom domains)
 cf pages project update "$PROJECT" --web-analytics-token="$TOKEN"
 
-# SEO vs noise: allow Google + AI search/user; block training scrapers + junk content bots
+# Agents are the audience: allow all AI crawlers. Content bot protection blocks cloud IPs, so keep it off.
 cf bot-management update -z "$ZONE_NAME" \
-  --ai-training=block \
+  --ai-training=disabled \
   --ai-search=disabled \
   --ai-user=disabled \
   --ai-bots-protection=disabled \
-  --content-bots-protection=block \
+  --content-bots-protection=disabled \
   --crawler-protection=disabled \
   --fight-mode=false \
   --is-robots-txt-managed=true \

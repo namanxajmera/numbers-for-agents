@@ -43,6 +43,20 @@ Inspect: `cf email-routing settings get -z numberforagents.com` and `cf email-ro
 
 Replies from Gmail come from the Gmail address. Sending as `hello@` needs a separate SMTP setup.
 
+## Agent readiness
+
+Checked with `npx is-agentic numberforagents.com`.
+
+| What | Where |
+|------|-------|
+| Agent guidance ("when to use") | `public/llms.txt` |
+| OpenAPI spec for `/api/waitlist` | `public/openapi.json` |
+| Markdown pages (`Accept: text/markdown`) | `public/index.md`, `public/docs.md`, served by `functions/_lib/markdown.js` |
+| JSON errors for every `/api/*` path | `functions/_lib/http.js`, `functions/api/[[path]].js` |
+| Rate limit headers (`RateLimit`, `RateLimit-Policy`) | `functions/api/waitlist.js` |
+
+Keep `openapi.json`, `docs.html`, and `docs.md` in sync when the API changes.
+
 ## Analytics (visitors vs bots)
 
 **Use Web Analytics for humans** (not zone **Traffic → Visitors**, which counts scanners).
@@ -58,7 +72,7 @@ Beacon is injected by Cloudflare (**zone auto-install** + **Pages Web Analytics 
 
 WAF custom ruleset **numberforagents security** blocks `.env` probes, known scanner user agents, and bad `host:port` traffic. **Always Use HTTPS** is on.
 
-**Bots / AI (SEO vs noise):** AI **training** bots blocked; **search** + **user** assistants allowed; **content** bots blocked at edge; **Bot Fight Mode** off (keeps Google/Bing safe). Managed `robots.txt` prepends CF policy to your sitemap line.
+**Bots / AI:** all AI crawlers and assistants are allowed (training, search, and user agents). **Content bot protection** is off and **Bot Fight Mode** is off. The site sells to agents, so agents must be able to read it. Content bot protection blocked every request from cloud IPs, including agent-readiness scanners. Managed `robots.txt` stays on.
 
 Re-apply or inspect via API: see `scripts/cf-visitor-insights.sh`.
 
@@ -75,7 +89,7 @@ Our own page-view log in the `analytics_hits` table (same D1 as the waitlist). C
 
 The middleware skips human visits and `/api/collect` skips non-human visits, so no page view is stored twice. Like DataFast and PostHog, people with JavaScript off or with Do Not Track on are not counted.
 
-`public/_routes.json` sends only `/`, `/guides/*`, `/api/*`, `/robots.txt`, `/sitemap.xml` to Functions, so CSS/JS/images stay free static requests. Requests the WAF blocks (scanners, AI training bots) never reach Pages and are not in this table. See **Security → Events** for those.
+`public/_routes.json` sends every path to Functions except the static assets it lists (CSS, JS, images, `openapi.json`, `llms.txt`). Unknown paths must reach Functions so they can answer with a Markdown 404. Requests the WAF blocks (scanners, AI training bots) never reach Pages and are not in this table. See **Security → Events** for those.
 
 **Buckets** (`bucket` column, from user agent + network, `functions/_lib/classify.js`):
 
