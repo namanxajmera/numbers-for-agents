@@ -56,8 +56,10 @@ function ensureWaitlistSchema(db) {
   return schemaReady;
 }
 
-export function onRequest() {
-  return methodNotAllowed("POST");
+// Wrong methods count toward the same limit, so agents see the headers.
+export function onRequest(context) {
+  const ip = context.request.headers.get("CF-Connecting-IP") || "";
+  return methodNotAllowed("POST", rateLimit(ip).headers);
 }
 
 export async function onRequestPost(context) {
