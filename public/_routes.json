@@ -1,5 +1,13 @@
 {
   "version": 1,
-  "include": ["/", "/guides/*", "/api/*", "/robots.txt", "/sitemap.xml"],
-  "exclude": []
+  "include": ["/*"],
+  "exclude": [
+    "/styles.css",
+    "/main.js",
+    "/analytics.js",
+    "/og.png",
+    "/openapi.json",
+    "/llms.txt",
+    "/.well-known/*"
+  ]
 }

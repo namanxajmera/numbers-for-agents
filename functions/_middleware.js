@@ -1,5 +1,6 @@
 import { classifyRequest, recordHit } from "./_lib/analytics.js";
 import { isProbePath } from "./_lib/classify.js";
+import { negotiate } from "./_lib/markdown.js";
 
 // Non-HTML files that crawlers fetch and we want to count.
 const ALWAYS_LOG = new Set(["/robots.txt", "/sitemap.xml"]);
@@ -12,8 +13,8 @@ function isPrefetch(request) {
 
 // Logs bot page views server-side, because bots do not run JavaScript.
 // Humans are skipped here. /analytics.js counts them, so no view is stored twice.
-// _routes.json limits which paths reach Functions; static assets never get here.
-export async function onRequest(context) {
+// _routes.json keeps static assets away from Functions.
+async function logBots(context) {
   const { request, env } = context;
   const response = await context.next();
 
@@ -29,7 +30,8 @@ export async function onRequest(context) {
   }
 
   const type = response.headers.get("Content-Type") || "";
-  if (!type.includes("text/html") && !ALWAYS_LOG.has(url.pathname)) {
+  const isPage = type.includes("text/html") || type.includes("text/markdown");
+  if (!isPage && !ALWAYS_LOG.has(url.pathname)) {
     return response;
   }
 
@@ -49,3 +51,6 @@ export async function onRequest(context) {
 
   return response;
 }
+
+// logBots runs first so it sees the final, negotiated response.
+export const onRequest = [logBots, negotiate];
