@@ -82,9 +82,9 @@
       </ul>
 
       <h2 id="rate-limits">Rate limits</h2>
-      <p><code>POST /api/waitlist</code> allows 10 requests per 60 seconds per client IP. Every response carries the IETF <code>RateLimit-Policy</code> and <code>RateLimit</code> headers. A 429 response also carries <code>Retry-After</code>.</p>
-      <pre class="code-block"><code>RateLimit-Policy: "waitlist";q=10;w=60
-RateLimit: "waitlist";r=9;t=42</code></pre>
+      <p>The API allows 10 requests per 60 seconds per client IP, shared across <code>/api/*</code> endpoints. Every API response carries the IETF <code>RateLimit-Policy</code> and <code>RateLimit</code> headers, plus <code>X-RateLimit-Limit</code>, <code>X-RateLimit-Remaining</code>, and <code>X-RateLimit-Reset</code> (Unix seconds). A 429 response also carries <code>Retry-After</code>.</p>
+      <pre class="code-block"><code>RateLimit-Policy: "api";q=10;w=60
+RateLimit: "api";r=9;t=42</code></pre>
 
       <h2 id="planned-api">Planned numbers API</h2>
       <p>The numbers API is not live yet. Names and fields may change before launch. Waitlist members get docs previews first.</p>

@@ -16,12 +16,12 @@ export function jsonError(status, code, error, hint, headers = {}) {
   return json(status, { ok: false, error, code, hint }, headers);
 }
 
-export function methodNotAllowed(allow, headers = {}) {
+export function methodNotAllowed(allow) {
   return jsonError(
     405,
     "method_not_allowed",
     `This endpoint accepts ${allow} only.`,
     "See https://numberforagents.com/openapi.json for the supported methods.",
-    { Allow: allow, ...headers }
+    { Allow: allow }
   );
 }

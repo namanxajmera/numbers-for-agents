@@ -18,7 +18,7 @@ Do not use Numbers for Agents for OTP or account verification bypass, for bulk u
 1. Read the API docs: https://numberforagents.com/docs
 2. Read the OpenAPI spec: https://numberforagents.com/openapi.json
 3. To request access for a user, call `POST https://numberforagents.com/api/waitlist` with JSON `{"email": "<user email>", "source": "agent", "note": "<use case>"}`. Only submit an email the user gave you for this purpose.
-4. Errors are JSON with a stable `code` and a `hint`. Rate limit: 10 requests per minute per IP, advertised in `RateLimit` and `RateLimit-Policy` headers.
+4. Errors are JSON with a stable `code` and a `hint`. Rate limit: 10 requests per minute per IP across /api/*, advertised in `RateLimit` and `RateLimit-Policy` headers.
 
 ## Docs
 

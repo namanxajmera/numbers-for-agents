@@ -147,7 +147,7 @@
     },
     "headers": {
       "RateLimitPolicy": {
-        "description": "IETF RateLimit-Policy field. Example: \"waitlist\";q=10;w=60 (10 requests per 60 seconds per client IP).",
+        "description": "IETF RateLimit-Policy field. Example: \"api\";q=10;w=60 (10 requests per 60 seconds per client IP, shared across /api/* endpoints).",
         "schema": { "type": "string" }
       },
       "RateLimit": {

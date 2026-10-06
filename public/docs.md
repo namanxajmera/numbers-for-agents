@@ -40,11 +40,11 @@ Every API error is JSON: `{"ok": false, "error": "...", "code": "...", "hint": "
 
 ## Rate limits
 
-10 requests per 60 seconds per client IP on `POST /api/waitlist`. Responses carry IETF `RateLimit-Policy` and `RateLimit` headers. A 429 also carries `Retry-After`.
+10 requests per 60 seconds per client IP, shared across `/api/*` endpoints. Every API response carries IETF `RateLimit-Policy` and `RateLimit` headers, plus `X-RateLimit-Limit`, `X-RateLimit-Remaining`, and `X-RateLimit-Reset` (Unix seconds). A 429 also carries `Retry-After`.
 
 ```
-RateLimit-Policy: "waitlist";q=10;w=60
-RateLimit: "waitlist";r=9;t=42
+RateLimit-Policy: "api";q=10;w=60
+RateLimit: "api";r=9;t=42
 ```
 
 ## Planned numbers API
