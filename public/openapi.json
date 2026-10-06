@@ -1,0 +1,170 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Numbers for Agents API",
+    "version": "0.1.0",
+    "summary": "Waitlist API for Numbers for Agents, the phone number API for AI agents.",
+    "description": "Numbers for Agents is a developer API that will provision real phone numbers for AI agents, with SMS, call webhooks, SIP, and WebSocket media bridges. The product is in private development. Today the public API has one operation: join the waitlist. The numbers API is planned and is described at https://numberforagents.com/docs.",
+    "contact": {
+      "name": "Numbers for Agents",
+      "email": "hello@numberforagents.com",
+      "url": "https://numberforagents.com/contact"
+    }
+  },
+  "servers": [{ "url": "https://numberforagents.com" }],
+  "externalDocs": {
+    "description": "API docs",
+    "url": "https://numberforagents.com/docs"
+  },
+  "tags": [{ "name": "waitlist", "description": "Early access signups." }],
+  "paths": {
+    "/api/waitlist": {
+      "post": {
+        "operationId": "joinWaitlist",
+        "tags": ["waitlist"],
+        "summary": "Join the waitlist",
+        "description": "Adds an email address to the early access waitlist for the Numbers for Agents API. Calling it again with the same email is safe: the record is updated, not duplicated. No authentication is required.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/WaitlistRequest" },
+              "example": {
+                "email": "dev@example.com",
+                "source": "agent",
+                "note": "Need US numbers with SMS for a support agent."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The email is on the waitlist.",
+            "headers": {
+              "RateLimit-Policy": { "$ref": "#/components/headers/RateLimitPolicy" },
+              "RateLimit": { "$ref": "#/components/headers/RateLimit" }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/WaitlistResponse" },
+                "example": { "ok": true }
+              }
+            }
+          },
+          "400": {
+            "description": "The body is not valid JSON, or the email is not valid. Codes: invalid_json, invalid_email.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/Error" },
+                "example": {
+                  "ok": false,
+                  "error": "Enter a valid email address.",
+                  "code": "invalid_email",
+                  "hint": "Pass a single address of at most 254 characters in the email field."
+                }
+              }
+            }
+          },
+          "405": { "$ref": "#/components/responses/MethodNotAllowed" },
+          "429": {
+            "description": "Too many requests from this client. Code: rate_limit_exceeded.",
+            "headers": {
+              "Retry-After": {
+                "description": "Seconds to wait before retrying.",
+                "schema": { "type": "integer" }
+              },
+              "RateLimit-Policy": { "$ref": "#/components/headers/RateLimitPolicy" },
+              "RateLimit": { "$ref": "#/components/headers/RateLimit" }
+            },
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          },
+          "500": {
+            "description": "The email could not be stored. Code: storage_failed. Retry later.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WaitlistRequest": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "description": "Email address to notify when API access opens."
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 128,
+            "default": "landing",
+            "description": "Where the signup came from. Agents should send \"agent\"."
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "Optional use case, region, or volume needs."
+          }
+        },
+        "additionalProperties": false
+      },
+      "WaitlistResponse": {
+        "type": "object",
+        "required": ["ok"],
+        "properties": {
+          "ok": { "type": "boolean", "const": true }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["ok", "error", "code", "hint"],
+        "properties": {
+          "ok": { "type": "boolean", "const": false },
+          "error": { "type": "string", "description": "Human-readable message." },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code.",
+            "enum": [
+              "invalid_json",
+              "invalid_email",
+              "method_not_allowed",
+              "api_route_not_found",
+              "rate_limit_exceeded",
+              "storage_failed"
+            ]
+          },
+          "hint": { "type": "string", "description": "How to fix the request." }
+        }
+      }
+    },
+    "headers": {
+      "RateLimitPolicy": {
+        "description": "IETF RateLimit-Policy field. Example: \"waitlist\";q=10;w=60 (10 requests per 60 seconds per client IP).",
+        "schema": { "type": "string" }
+      },
+      "RateLimit": {
+        "description": "IETF RateLimit field. r is the remaining quota, t is seconds until the window resets.",
+        "schema": { "type": "string" }
+      }
+    },
+    "responses": {
+      "MethodNotAllowed": {
+        "description": "The HTTP method is not supported. Code: method_not_allowed.",
+        "headers": {
+          "Allow": { "description": "Supported methods.", "schema": { "type": "string" } }
+        },
+        "content": {
+          "application/json": { "schema": { "$ref": "#/components/schemas/Error" } }
+        }
+      }
+    }
+  }
+}

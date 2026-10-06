@@ -6,6 +6,7 @@ import {
   visitorHash,
 } from "../_lib/analytics.js";
 import { isProbePath } from "../_lib/classify.js";
+import { methodNotAllowed } from "../_lib/http.js";
 
 const MAX_BODY_BYTES = 2048;
 const PER_MINUTE_LIMIT = 30;
@@ -78,6 +79,10 @@ async function store(db, request, beacon) {
   await ensureAnalyticsSchema(db);
   if (await overDailyLimit(db, request)) return;
   await recordHit(db, request, { bucket: "human", agent: null, ...beacon });
+}
+
+export function onRequest() {
+  return methodNotAllowed("POST");
 }
 
 // POST /api/collect — page-view beacon from /analytics.js.
