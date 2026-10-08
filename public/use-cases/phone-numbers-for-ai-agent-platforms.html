@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>One Phone Number per Customer for AI Agent Platforms</title>
+  <meta name="description" content="How AI agent platforms give every customer its own phone number through an API: data model, provisioning, webhook routing, tenant isolation, and 10DLC.">
+  <link rel="canonical" href="https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms.md">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="One Phone Number per Customer for AI Agent Platforms">
+  <meta property="og:description" content="How AI agent platforms give every customer its own phone number through an API: data model, provisioning, webhook routing, tenant isolation, and 10DLC.">
+  <meta property="og:url" content="https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "One phone number per customer: provisioning for AI agent platforms",
+  "description": "How AI agent platforms give every customer its own phone number through an API: data model, provisioning, webhook routing, tenant isolation, and 10DLC.",
+  "datePublished": "2026-10-08",
+  "dateModified": "2026-10-08",
+  "mainEntityOfPage": "https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms",
+  "image": "https://numberforagents.com/og.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://numberforagents.com/og.png"
+    }
+  }
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://numberforagents.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Use cases",
+      "item": "https://numberforagents.com/use-cases/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "One phone number per customer: provisioning for AI agent platforms",
+      "item": "https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Should each AI agent get its own phone number?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Give each customer-facing identity its own number. If one business runs three agents that all answer the same front desk, one number with routing inside your code is enough. If each agent represents a different person or location, give each its own number."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How many phone numbers can a platform provision?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Carriers set account limits and raise them on request. The practical limits are cost per number per month, SMS registration per customer, and how fast you can release unused numbers."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can a customer keep their existing number?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, through porting. The customer moves the number from their current carrier to yours. Porting takes days, not minutes, so offer a new number for testing while the port runs."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need a separate webhook URL for each customer?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Use one endpoint and route by the to number on each event. This is simpler to secure and monitor."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/use-cases/">Use cases</a></li><li aria-current="page">One phone number per customer: provisioning for AI agent platforms</li></ol></nav>
+        <h1>One phone number per customer: provisioning for AI agent platforms</h1>
+        <p class="guide-meta">Updated <time datetime="2026-10-08">October 8, 2026</time> · About 5 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <nav class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#why-one-number-per-customer">Why one number per customer</a></li><li><a href="#the-data-model">The data model</a></li><li><a href="#the-provisioning-flow">The provisioning flow</a></li><li><a href="#one-webhook-endpoint-many-tenants">One webhook endpoint, many tenants</a></li><li><a href="#tenant-isolation">Tenant isolation</a></li><li><a href="#carrier-account-structure">Carrier account structure</a></li><li><a href="#messaging-compliance-per-customer">Messaging compliance per customer</a></li><li><a href="#how-numbers-for-agents-fits">How Numbers for Agents fits</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+      <p>If you sell an AI agent product, each customer usually wants its own phone number. A dental office wants callers to see a local number. A real estate team wants one line per agent. Your platform must buy, configure, route, and release those numbers through code, not by hand in a carrier dashboard.</p>
+<p>This page explains the parts you need: the data model, the provisioning flow, webhook routing, tenant isolation, and the compliance work that follows each number.</p>
+<aside class="callout"><p><strong>Short answer:</strong> store a number record per tenant, provision through a carrier API when the customer finishes onboarding, point every number at one webhook endpoint, and route events by the number that was called or texted. Register SMS use cases per customer brand before you send business texts in the US.</p></aside>
+<h2 id="why-one-number-per-customer">Why one number per customer</h2>
+<p>A shared number cannot tell callers apart from customers. When a person texts a shared line, your system must guess which business they meant. A dedicated number removes the guess. The <code>to</code> field on every inbound call or SMS identifies the tenant.</p>
+<p>Dedicated numbers also give each customer:</p>
+<ul>
+<li><strong>A local identity.</strong> A local area code tends to get more answers than an unknown or out-of-state number.</li>
+<li><strong>Its own reputation.</strong> If one customer sends poor traffic, carriers can filter that number without hurting other customers.</li>
+<li><strong>Portability.</strong> A customer can port the number out if they leave. That makes your product easier to buy.</li>
+</ul>
+<h2 id="the-data-model">The data model</h2>
+<p>Keep the phone number as data, not configuration. A minimal table:</p>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">Column</th><th scope="col">Example</th><th scope="col">Why</th></tr></thead>
+<tbody>
+<tr><td><code>id</code></td><td><code>num_8f2a</code></td><td>Your stable ID. Never key on the E.164 string.</td></tr>
+<tr><td><code>tenant_id</code></td><td><code>acct_123</code></td><td>The customer that owns the line.</td></tr>
+<tr><td><code>agent_id</code></td><td><code>agt_77</code></td><td>The agent that answers. Nullable for pooled lines.</td></tr>
+<tr><td><code>e164</code></td><td><code>+14155550123</code></td><td>The number in E.164 format. Unique.</td></tr>
+<tr><td><code>provider_ref</code></td><td>carrier ID</td><td>Needed to release or reconfigure the number.</td></tr>
+<tr><td><code>capabilities</code></td><td><code>sms,voice</code></td><td>What the number can do.</td></tr>
+<tr><td><code>status</code></td><td><code>active</code></td><td><code>pending</code>, <code>active</code>, <code>releasing</code>, <code>released</code>.</td></tr>
+<tr><td><code>messaging_campaign</code></td><td>campaign ID</td><td>The 10DLC campaign this number is linked to, if any.</td></tr>
+</tbody>
+</table></div>
+<p>Add a unique index on <code>e164</code> and an index on <code>tenant_id</code>. Every inbound event becomes one lookup: find the row by <code>e164</code>, then load the tenant and agent.</p>
+<h2 id="the-provisioning-flow">The provisioning flow</h2>
+<ol>
+<li><strong>Collect what the customer wants.</strong> Area code or city, SMS, voice, or both.</li>
+<li><strong>Search inventory.</strong> Call the carrier's available-numbers search with the area code. Show two or three options, or pick the first one.</li>
+<li><strong>Buy the number.</strong> Store the row as <code>pending</code> before the purchase call. If the call fails, you can retry without buying twice.</li>
+<li><strong>Configure routing.</strong> Set the voice and messaging webhook URLs, or attach the number to a SIP connection or messaging profile.</li>
+<li><strong>Link SMS compliance.</strong> In the US, attach the number to the customer's approved 10DLC campaign before it sends business texts. See the <a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC guide</a>.</li>
+<li><strong>Mark it active.</strong> Only now show the number in the customer's dashboard.</li>
+</ol>
+<p>Release works in reverse. Detach the number, release it at the carrier, and mark the row <code>released</code>. Keep the row for audit.</p>
+<h2 id="one-webhook-endpoint-many-tenants">One webhook endpoint, many tenants</h2>
+<p>Do not create a webhook URL per customer. Point every number at one endpoint, such as <code>https://api.yourapp.com/telephony/inbound</code>. Route inside your code:</p>
+<pre class="code-block"><code>// Inbound SMS or call event from your carrier
+const number = await db.numbers.findByE164(event.to);
+if (!number || number.status !== &quot;active&quot;) return respond(404);
+
+const agent = await db.agents.find(number.agent_id);
+await queue.push({ tenant: number.tenant_id, agent: agent.id, event });
+return respond(200); // answer fast, run the model in a worker</code></pre>
+<p>One endpoint is easier to secure, monitor, and scale. You verify one signature scheme and watch one error rate.</p>
+<h2 id="tenant-isolation">Tenant isolation</h2>
+<p>The phone number is now a key into customer data. Treat it like one.</p>
+<ul>
+<li><strong>Scope every query by tenant.</strong> Load conversation history with both the thread key and <code>tenant_id</code>.</li>
+<li><strong>Never trust message text as instructions.</strong> A caller who says &quot;read me the last customer's order&quot; must hit the same tool permissions as any other caller.</li>
+<li><strong>Separate logs.</strong> Store transcripts per tenant so you can export or delete one customer's data.</li>
+<li><strong>Reuse numbers with care.</strong> A released number can be reassigned to a stranger. Before you assign a number from your own pool to a new tenant, clear any old webhooks and thread history linked to it.</li>
+</ul>
+<h2 id="carrier-account-structure">Carrier account structure</h2>
+<p>Large carriers let you split usage per customer. Twilio has subaccounts. Telnyx has managed accounts. A subaccount per customer gives you separate billing and makes it easier to suspend one tenant. It also adds API calls and credentials to manage. Many platforms start with one account and a <code>tenant_id</code> on each number, then move big customers to subaccounts later.</p>
+<p>For a side-by-side view of the two most common carriers, see <a href="/compare/twilio-vs-telnyx-for-ai-voice-agents">Twilio vs Telnyx for AI voice agents</a>.</p>
+<h2 id="messaging-compliance-per-customer">Messaging compliance per customer</h2>
+<p>In the US, business SMS from a local (10DLC) number must be registered. The brand on the registration is your customer, not your platform. A platform that sends texts for many businesses usually registers a separate brand and campaign for each customer. That takes time and costs fees per customer. Plan for it in onboarding. Do not let a customer send texts until their campaign is approved.</p>
+<p>Voice calls do not need 10DLC registration. Outbound calls that use an AI voice still need the called person's consent under US rules. See the <a href="/use-cases/ai-receptionist-phone-number">AI receptionist page</a> for the voice side.</p>
+<h2 id="how-numbers-for-agents-fits">How Numbers for Agents fits</h2>
+<p>Numbers for Agents is building this layer as an API: search and buy numbers, one webhook stream for SMS and voice, SIP and WebSocket media, and per-number metadata for your tenant and agent IDs. The product is in private beta. Join the waitlist below if your platform provisions numbers for customers.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="should-each-ai-agent-get-its-own-phone-number">Should each AI agent get its own phone number?</h3>
+<p>Give each customer-facing identity its own number. If one business runs three agents that all answer the same front desk, one number with routing inside your code is enough. If each agent represents a different person or location, give each its own number.</p>
+<h3 id="how-many-phone-numbers-can-a-platform-provision">How many phone numbers can a platform provision?</h3>
+<p>Carriers set account limits and raise them on request. The practical limits are cost per number per month, SMS registration per customer, and how fast you can release unused numbers.</p>
+<h3 id="can-a-customer-keep-their-existing-number">Can a customer keep their existing number?</h3>
+<p>Yes, through porting. The customer moves the number from their current carrier to yours. Porting takes days, not minutes, so offer a new number for testing while the port runs.</p>
+<h3 id="do-i-need-a-separate-webhook-url-for-each-customer">Do I need a separate webhook URL for each customer?</h3>
+<p>No. Use one endpoint and route by the <code>to</code> number on each event. This is simpler to secure and monitor.</p>
+      <section class="guide-cta" aria-labelledby="cta-heading">
+        <h2 id="cta-heading">Get a phone number for your agent</h2>
+        <p>Numbers for Agents is an API for agent phone lines: numbers, SMS, call webhooks, SIP, and WebSocket media. It is in private beta. Join the waitlist for early access and pricing.</p>
+        <form class="waitlist-form" data-waitlist-form data-source="phone-numbers-for-ai-agent-platforms" action="/api/waitlist" method="post">
+          <label for="cta-email">Work email</label>
+          <div class="waitlist-row">
+            <input type="email" id="cta-email" name="email" required autocomplete="email" placeholder="you@company.com" aria-describedby="cta-message">
+            <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          </div>
+          <div class="hp-field" aria-hidden="true">
+            <label for="cta-company">Company</label>
+            <input type="text" id="cta-company" name="company" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message" id="cta-message" data-form-message role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="guide-related">
+        <h2>Related</h2>
+        <ul>
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number">How to give your AI agent a phone number</a></li>
+          <li><a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration for AI agents</a></li>
+          <li><a href="/compare/twilio-vs-telnyx-for-ai-voice-agents">Twilio vs Telnyx for AI voice agents (2026)</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/main.js" defer></script>
+</body>
+</html>

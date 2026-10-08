@@ -1,0 +1,1408 @@
+# Numbers for Agents: give your AI agent a phone number
+
+Numbers for Agents is an API that provisions real phone numbers for AI agents: SMS, call plumbing, webhooks, and bridges into your voice stack. It is in private development. Join the waitlist for API access and early pricing.
+
+- API docs: https://numberforagents.com/docs
+- OpenAPI spec: https://numberforagents.com/openapi.json
+- Agent guidance: https://numberforagents.com/llms.txt
+
+## When to use it
+
+Use Numbers for Agents when an AI agent needs its own phone line: a support or scheduling agent that texts, a voice agent that answers calls, or an agent platform that provisions one number per customer. You keep your own model and logic. Do not use it for OTP or verification bypass or bulk unsolicited messaging.
+
+## How it works
+
+1. **Provision a number via API.** Create a number with the regions and capabilities you need. Attach webhooks for SMS and voice events.
+2. **Connect your stack.** Point webhooks at your server, or terminate media on SIP or a WebSocket stream into your agent runtime.
+3. **Your agent sends texts and takes calls.** Outbound SMS and calls use the same number. Inbound traffic hits your logic, not a bundled assistant.
+
+## API sketch (planned)
+
+Names and fields may change before launch.
+
+```bash
+# Provision a number
+curl -X POST https://api.numberforagents.com/v1/numbers \
+  -H "Authorization: Bearer $NFA_TOKEN" \
+  -d '{"region":"US","capabilities":["sms","voice"]}'
+
+# Send an SMS from that number
+curl -X POST https://api.numberforagents.com/v1/messages \
+  -H "Authorization: Bearer $NFA_TOKEN" \
+  -d '{"from":"+14155550123","to":"+14155559876","body":"Your appointment is confirmed for 3pm."}'
+```
+
+Inbound calls arrive as a `call.started` webhook. Your server answers with instructions such as `connect_media` to a SIP URI or a WebSocket media stream.
+
+## Features
+
+- **Number provisioning:** search and buy numbers through one REST API. One agent, one line, or a pool.
+- **SMS in and out:** delivery receipts and threaded conversation IDs.
+- **Call plumbing in and out:** clear events for ring, answer, and hangup.
+- **Webhooks:** signed HTTP callbacks for SMS and voice state changes.
+- **SIP trunking:** hand off audio to your PBX, CPaaS, or custom SIP endpoint.
+- **WebSocket media streams:** stream audio to your app for STT, TTS, and model turns.
+- **Inbox, voicemail, call logs:** operator views and exports.
+- **Bring your own voice stack:** your model, Bland, Vapi, Retell, or anything that speaks SIP or WebSocket.
+
+Plumbing, not a platform: no bundled voice AI.
+
+## Pricing
+
+Simple per-number pricing. Details at launch. Waitlist members lock in early pricing.
+
+## FAQ
+
+**What is a phone number for an AI agent?** A real telephone number assigned to your agent so people can text or call it. Your code owns the logic.
+
+**How does the agent answer calls?** We send your server a webhook and connect the call to your stack over SIP or a WebSocket media stream.
+
+**Do you provide the voice AI?** No. You bring your own model or a provider such as Bland, Vapi, or Retell.
+
+**Can I bring my own carrier numbers?** Porting and BYOC are on the roadmap.
+
+**Which countries will you support?** US and Canada first, then more based on waitlist demand.
+
+**Is this for OTP or account verification?** No.
+
+**When is launch?** We are in private development. Waitlist members get invites in signup order.
+
+## Join the waitlist
+
+`POST https://numberforagents.com/api/waitlist` with JSON `{"email": "you@company.com"}`. See https://numberforagents.com/docs.
+
+## Guides and comparisons
+
+- [All guides](https://numberforagents.com/guides/): setup guides for Vapi, Retell, MCP agents, SMS, inbound calls, and A2P 10DLC.
+- [Comparisons](https://numberforagents.com/compare/): phone number APIs for AI agents, Twilio vs Telnyx, and Vapi number options.
+- [Use cases](https://numberforagents.com/use-cases/): AI receptionists, appointment reminder agents, and one number per customer.
+- Full text of every guide for LLMs: https://numberforagents.com/llms-full.txt
+
+## Company
+
+[About](https://numberforagents.com/about) · [Contact](https://numberforagents.com/contact) · [Privacy](https://numberforagents.com/privacy) · hello@numberforagents.com
+
+---
+
+# How to give your AI agent a phone number
+
+> A practical guide to provisioning a real phone line for an AI agent: API steps, webhooks, compliance basics, and how to connect your voice stack.
+>
+> Source: https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number · Updated 2026-10-08 · Numbers for Agents
+
+People expect to reach businesses by phone and text. If your product is an AI agent, a public number is often the simplest interface. This guide explains what that number does in your architecture, how to provision it through an API, and what you need before you go live.
+
+## Why agents need their own line
+
+A dedicated number separates your agent from personal phones and shared inboxes. Callers see a stable identity. Your backend can route every SMS and call to the same webhook URL. You can scale to multiple agents later by assigning one number per agent or per customer account.
+
+The number is not the brain of the agent. It is the front door. Speech recognition, language models, tools, and business rules stay in your stack. The telecom layer delivers events and audio streams so your code can respond.
+
+## What you are buying from a telecom API
+
+Developer-focused phone APIs typically offer four building blocks:
+
+- **Provisioning** — search available numbers and attach them to your project.
+- **Messaging** — send and receive SMS (and sometimes MMS) with status callbacks.
+- **Voice** — place and receive calls, often with SIP or WebSocket media.
+- **Webhooks** — HTTP POST payloads when messages arrive or call state changes.
+
+Numbers for Agents focuses on this plumbing. We do not ship a bundled voice assistant. You connect Bland, Vapi, Retell, your own model, or a custom SIP endpoint.
+
+## Step 1: Define the agent’s job on the phone
+
+Write down the inbound and outbound flows before you touch an API. Examples: answer FAQs, book meetings, confirm orders, or warm-transfer to a human. Outbound might be appointment reminders or follow-ups after a form submit.
+
+Each flow implies different capabilities. Pure SMS support needs messaging only. A hotline that answers with speech needs voice plus a media path into your runtime. Clarity here saves rework when you pick number capabilities.
+
+## Step 2: Provision a number via API
+
+Most APIs follow the same pattern: authenticate with a bearer token, POST to a `/numbers` or similar resource, and receive an E.164 phone number plus an internal ID. You set a webhook URL for inbound SMS and another for voice events (or one URL with a type field).
+
+Store the number ID in your database next to the user or agent record. Never hard-code the E.164 string in multiple services. If you swap numbers during testing, one ID field updates everywhere.
+
+## Step 3: Wire webhooks on your server
+
+Your HTTPS endpoint should verify signatures from the provider, return quickly, and push heavy work to a queue. For SMS, parse the sender, body, and conversation ID, then call your agent logic. For voice, the first webhook may only announce that a call started; you respond with instructions to connect media.
+
+Use idempotency keys or deduplication on webhook IDs. Telecom providers retry on timeouts. Your handler must tolerate duplicates without sending two replies.
+
+## Step 4: Connect your voice stack
+
+For phone calls, audio must flow between the caller and your agent. Common patterns include:
+
+- **WebSocket media** — your server receives encoded audio frames and sends synthesized speech back.
+- **SIP** — you register a trunk or URI that your voice platform already supports.
+- **CPaaS bridge** — some teams forward to an existing Twilio or carrier leg; the agent API still owns the public number.
+
+Pick the path that matches your latency budget and the SDKs you already run in production. For a deeper walkthrough of inbound calls, see [how AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls).
+
+## Step 5: Test like a real user
+
+Call and text the number from a mobile phone. Test voicemail, interrupted speech, and background noise. Log webhook bodies in staging so you can replay failures. Check SMS and call limits before large campaigns.
+
+## Compliance and acceptable use
+
+Telecom is regulated. You need consent for many outbound texts and calls. Publish a clear privacy policy and honor opt-out keywords. Business texts from US local numbers need [A2P 10DLC registration](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents), and outbound calls with an AI voice need the called person's consent. Product-facing agent lines for support and scheduling are in scope for platforms like Numbers for Agents.
+
+We are not an OTP or verification-bypass service. Do not use agent numbers to defeat SMS verification on third-party apps. Build flows where the user expects to hear from your agent.
+
+## What to do next
+
+To compare providers, see [the best phone number APIs for AI agents](https://numberforagents.com/compare/best-phone-number-apis-for-ai-agents). If your agent runs on a voice platform, follow [connect a phone number to Vapi](https://numberforagents.com/guides/connect-phone-number-to-vapi) or [connect a phone number to Retell](https://numberforagents.com/guides/connect-phone-number-to-retell-ai). If you are designing SMS-first agents, read [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained). When you are ready to provision lines through our API, [join the waitlist](https://numberforagents.com/#waitlist) for early access and pricing.
+
+---
+
+# AI agent SMS API explained
+
+> Learn how SMS APIs work for AI agents: sending, receiving, webhooks, threading, delivery receipts, and design patterns for conversational text agents.
+>
+> Source: https://numberforagents.com/guides/ai-agent-sms-api-explained · Updated 2026-10-08 · Numbers for Agents
+
+SMS is still the lowest-friction channel for many users. An AI agent that texts back within seconds can handle scheduling, order updates, and tier-one support without forcing someone to install an app. This article explains how SMS APIs fit into agent architecture and what to implement on your server.
+
+## Outbound SMS: the send endpoint
+
+Outbound messages usually start with a POST request. You pass a `from` number your project owns, a `to` number in E.164 format, and a `body` string. The API returns a message ID you store for tracking.
+
+Agents rarely send static text only. Your flow is: user event or cron triggers agent reasoning, the model drafts a reply, you truncate to SMS length limits (160 GSM characters per segment, longer messages split into multiple parts), then you call the send endpoint. Keep templates for regulated content such as opt-out language where required.
+
+## Inbound SMS: webhooks to your agent
+
+When someone texts your agent number, the provider POSTs a webhook to your configured URL. Typical fields include sender, recipient, body text, a message ID, and a conversation or thread key. Your handler should:
+
+1. Validate the signature header.
+2. Normalize phone numbers to E.164.
+3. Load conversation history from your database.
+4. Invoke the agent with the new user turn.
+5. Send the model’s reply via the outbound API.
+
+Return HTTP 200 quickly even if the agent runs asynchronously. Long model calls should not block the webhook thread. Queue the work and send the SMS when inference completes.
+
+## Threading and memory
+
+Users expect continuity. Map each pair of (your_number, their_number) to a thread ID. Append inbound and outbound bodies with timestamps. Pass the last N messages into your prompt or use a summarization step for long threads.
+
+Multi-agent products should scope threads per tenant. A mistake here leaks one customer’s chat into another’s context. Enforce tenant ID in every query.
+
+## Delivery receipts and failures
+
+Carriers report queued, sent, delivered, or failed states on separate callbacks. Use them to retry transient failures and to stop messaging invalid numbers. Agents that promise “I’ll text you the link” should confirm delivery before closing a ticket.
+
+Hard bounces often mean the user changed numbers or blocked your sender. Surface that to your CRM instead of letting the model retry forever.
+
+## Rate limits and throughput
+
+SMS is not infinite bandwidth. Campaigns need per-second caps and quiet hours. Conversational agents need concurrency limits so one viral post does not exhaust your account. Architect a small outbound queue with backoff.
+
+US business texts from local numbers must be registered first. See [A2P 10DLC registration for AI agents](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents).
+
+Separate transactional traffic (receipts, 2FA you own end-to-end) from marketing blasts if your provider assigns different reputation pools. Numbers for Agents is aimed at conversational agent traffic, not bulk verification bypass.
+
+## Design patterns that work
+
+**Human handoff.** When confidence is low, reply with a short message and create an internal task. Include a link or ask the user to reply CALL for a voice handoff if you also run [voice plumbing](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls).
+
+**Structured actions.** Ask users to reply with digits for choices. Models parse natural language, but explicit options reduce errors on slow connections.
+
+**Opt-outs in code.** Check every inbound message for STOP and the other opt-out words before it reaches the model. See the [appointment reminder agent](https://numberforagents.com/use-cases/appointment-reminder-sms-agent) for an example.
+
+**Quiet hours.** Store the user’s timezone. Defer non-urgent outbound texts to morning local time.
+
+## Security basics
+
+Never trust inbound body text as instructions to your agent without scoping tools. A stranger texting “ignore previous instructions” should not delete data. Use tool allowlists and separate system prompts from user content.
+
+Rotate API keys. Restrict send permissions to backend services, not mobile clients. Log redacted payloads for audit.
+
+## How this maps to Numbers for Agents
+
+Our API will expose message send, inbound webhooks, and per-number configuration consistent with the voice side of the product. You provision a line once, then use the same number for SMS and calls if you enable both capabilities. Start with [how to give your AI agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number), then [join the waitlist](https://numberforagents.com/#waitlist) for beta access.
+
+---
+
+# How AI voice agents receive phone calls
+
+> Understand inbound call flow for AI agents: webhooks, SIP, WebSocket media, latency, handoff to humans, and how to bring your own voice stack.
+>
+> Source: https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls · Updated 2026-10-08 · Numbers for Agents
+
+Voice is the hardest channel for agents because audio is real time. Callers tolerate only a short pause after they stop speaking. This guide walks through what happens when someone dials your agent’s number and how your code joins the call without buying a bundled voice platform.
+
+## The call timeline
+
+A typical inbound flow looks like this:
+
+1. The public switched telephone network routes the call to your provider.
+2. The provider hits your voice webhook with `call.started` (names vary by API).
+3. Your server responds with how to handle audio: connect WebSocket, dial SIP, play a prompt, or reject.
+4. Once media is up, your STT → model → TTS loop runs until hangup or transfer.
+5. A final webhook reports duration, disposition, and recording URLs if enabled.
+
+Each step must complete in hundreds of milliseconds where possible. Cold starts on serverless functions are a common failure mode. Warm pools or dedicated workers for voice webhooks pay off quickly.
+
+## Webhooks vs media paths
+
+Webhooks carry JSON metadata only. They do not include the caller’s voice. After you accept a call, you need a **media path**:
+
+- **WebSocket streaming** — bidirectional audio frames encoded as PCM or Opus. Your agent service reads frames, runs VAD and STT, streams TTS back.
+- **SIP** — you return a SIP URI or the provider bridges to your registered trunk. Useful if you already host FreeSWITCH, Asterisk, or a CPaaS that speaks SIP.
+
+Some teams mix both: webhook for state, WebSocket for media. Others send SIP directly to [Retell](https://numberforagents.com/guides/connect-phone-number-to-retell-ai), [Vapi](https://numberforagents.com/guides/connect-phone-number-to-vapi), or a custom orchestrator. For carrier prices on both paths, see [Twilio vs Telnyx for AI voice agents](https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents). Numbers for Agents stays neutral — we deliver the call leg; you choose the brain.
+
+## Answering logic your agent must implement
+
+On `call.started`, decide:
+
+- Should this caller reach the agent or a human queue?
+- Is the number in business hours?
+- Do you need a short disclosure (“This call may be recorded”)?
+
+Return a machine-readable instruction object. Examples: `connect_media` with a WebSocket URL, `transfer` to a PSTN number, or `hangup` with a cause code. Keep responses idempotent; providers may retry the initial webhook.
+
+## Latency budget
+
+Users perceive delays over ~700 ms as awkward. Budget time across:
+
+- Network round trip from carrier to your region.
+- Speech-to-text partial results.
+- Model inference (use streaming tokens).
+- Text-to-speech first byte.
+
+Start TTS on the first fluent phrase instead of waiting for the full completion. Barge-in (caller interrupts) requires cancelling in-flight TTS and clearing buffers — plan for it in your media handler.
+
+## Outbound calls from the same number
+
+Agents that both receive and place calls should present the same caller ID for trust. Outbound usually starts with an API request specifying `from`, `to`, and a URL that returns voice instructions when the callee answers. Symmetry simplifies compliance records: one number, one opt-in story.
+
+For SMS on the same line, read [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained) and provision capabilities together when you [give your agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number).
+
+## Recordings, voicemail, and logs
+
+Product teams often want call logs even when the agent is automated. Store call ID, timestamps, outcome, and redacted transcripts. Voicemail can be a fallback when your agent errors: redirect to record-after-beep, then process the file with the same STT pipeline.
+
+Tell callers when recording happens. Follow local laws for two-party consent regions.
+
+## Human handoff
+
+Design an explicit transfer path. When sentiment drops or the user asks for a person, your webhook should issue a transfer instruction with a target queue or phone number. The AI should stop speaking immediately after transfer starts to avoid talking over the human.
+
+## Testing inbound voice
+
+Use real handsets, not only softphones. Test weak cell signal, speakerphone, and accented speech. Automate regression with recorded WAV files injected into your media layer where possible.
+
+Monitor webhook latency and media connect time as first-class metrics. Alert when P95 exceeds your budget.
+
+## Where Numbers for Agents fits
+
+We focus on number provisioning, inbound/outbound call events, SIP trunking, and WebSocket media bridges — not on selling you a default voice model. Bring Bland, Vapi, Retell, or your own stack. [Join the waitlist](https://numberforagents.com/#waitlist) to shape the beta API and lock in early per-number pricing.
+
+---
+
+# How to connect a phone number to Vapi
+
+> Put a phone number on a Vapi assistant: free Vapi number, Twilio import, Telnyx import, BYO SIP trunk, and the POST /phone-number API call.
+>
+> Source: https://numberforagents.com/guides/connect-phone-number-to-vapi · Updated 2026-10-08 · Numbers for Agents
+
+This guide shows how to put a phone number on a Vapi assistant so people can call it, and so it can call out. It covers the dashboard steps and the API call for each number type. Steps follow Vapi's docs as of October 8, 2026.
+
+If you have not picked a number type yet, read [Vapi phone numbers: free vs Twilio vs Telnyx vs SIP](https://numberforagents.com/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx) first. In short: free Vapi numbers are inbound only. Twilio imports support outbound calls and SMS. Telnyx imports support outbound calls.
+
+## Before you start
+
+- A Vapi account and an assistant you want to answer calls.
+- For a Twilio import: a Twilio number, your Account SID, and your Auth Token.
+- For a Telnyx import: a Telnyx number and a Telnyx API key.
+- For a SIP trunk: your carrier's SIP server address, auth details, and a number (DID).
+
+## Option 1: Free Vapi number (inbound only)
+
+1. In the Vapi dashboard, open **Phone Numbers**.
+2. Select **Create Phone Number**, then **Free Vapi Number**.
+3. Enter a US area code. If the dashboard asks for a payment method, add one first.
+4. Select **Create**. Activation can take a few minutes. Calls fail until it finishes.
+5. Open the number. Under **Inbound Settings**, choose your assistant and select **Save**.
+
+Call the number from your phone. Your assistant should answer.
+
+## Option 2: Import a Twilio number
+
+1. In the Twilio Console, buy a number if you do not have one.
+2. In the Twilio Console dashboard, under **Account Info**, copy the **Account SID** and **Auth Token**.
+3. In Vapi, open **Phone Numbers > Create Phone Number > Import Twilio**.
+4. Enter the number with its country code, the Account SID, and the Auth Token. Turn on **SMS Enabled** if you want SMS. Select **Import from Twilio**.
+5. Open the number and assign your assistant for inbound calls.
+
+Vapi configures the Twilio webhooks for you. You do not need to set a voice URL in Twilio.
+
+## Option 3: Import a Telnyx number
+
+1. In Vapi, open **Phone Numbers > Create Phone Number > Import Telnyx**.
+2. Enter the number with its country code and your Telnyx API key. Select **Import from Telnyx**.
+3. Assign your assistant for inbound calls.
+4. For outbound calls, open the Telnyx Portal and go to **Outbound Voice Profiles**. Create or select a profile, set the allowed destinations, then select **Add connections/apps to profile**. Choose the Vapi connection and select **Save**.
+
+Skip step 4 and outbound calls will fail.
+
+## Option 4: Bring your own SIP trunk (API)
+
+Use this for any carrier with SIP. First create a credential that describes your carrier's gateway:
+
+```bash
+curl -X POST https://api.vapi.ai/credential \
+  -H "Authorization: Bearer $VAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "byo-sip-trunk",
+    "name": "my-carrier",
+    "gateways": [{ "ip": "sip.your-carrier.com", "inboundEnabled": false }],
+    "outboundLeadingPlusEnabled": true,
+    "outboundAuthenticationPlan": {
+      "authUsername": "YOUR_SIP_USERNAME",
+      "authPassword": "YOUR_SIP_PASSWORD"
+    }
+  }'
+```
+
+Save the credential `id`. Then register the number:
+
+```bash
+curl -X POST https://api.vapi.ai/phone-number \
+  -H "Authorization: Bearer $VAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "byo-phone-number",
+    "name": "Support line",
+    "number": "15551234567",
+    "numberE164CheckEnabled": false,
+    "credentialId": "YOUR_CREDENTIAL_ID"
+  }'
+```
+
+For inbound calls, configure your carrier to send calls to `sip:15551234567@YOUR_CREDENTIAL_ID.sip.vapi.ai`. Allow Vapi's US signaling IPs (`44.229.228.186/32` and `44.238.177.138/32`) and UDP ports 40000 to 60000 for media. See Vapi's [SIP trunk docs](https://docs.vapi.ai/advanced/sip/sip-trunk) for carrier-specific guides.
+
+## Import a number with the API
+
+The dashboard steps above have an API equivalent: `POST https://api.vapi.ai/phone-number`. The body changes with `provider`. A Twilio import:
+
+```bash
+curl -X POST https://api.vapi.ai/phone-number \
+  -H "Authorization: Bearer $VAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "twilio",
+    "number": "+14155550123",
+    "twilioAccountSid": "ACxxxxxxxx",
+    "twilioAuthToken": "YOUR_AUTH_TOKEN",
+    "assistantId": "YOUR_ASSISTANT_ID",
+    "smsEnabled": true
+  }'
+```
+
+For Telnyx, use `"provider": "telnyx"` with `credentialId` (a Telnyx credential you add in the Vapi dashboard) and `number`.
+
+If you leave `assistantId` unset, Vapi sends an `assistant-request` to your server URL on each inbound call. Your server then picks the assistant per call. This is how platforms route one Vapi organization to many customers.
+
+## Make an outbound call
+
+Outbound calls need a Twilio, Telnyx, or SIP number. Free Vapi numbers cannot call out.
+
+```bash
+curl -X POST https://api.vapi.ai/call/phone \
+  -H "Authorization: Bearer $VAPI_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "assistantId": "YOUR_ASSISTANT_ID",
+    "phoneNumberId": "YOUR_PHONE_NUMBER_ID",
+    "customer": { "number": "+14155559876" }
+  }'
+```
+
+Calling people with an AI voice in the US requires their prior consent. Read the [AI receptionist page](https://numberforagents.com/use-cases/ai-receptionist-phone-number) for the rules that apply to voice agents.
+
+## Troubleshooting
+
+- **Calls to a new free number fail.** Activation can take a few minutes. Wait and retry.
+- **Outbound calls on Telnyx fail.** Add the Vapi connection to a Telnyx Outbound Voice Profile.
+- **Garbled audio on Telnyx international calls.** Telnyx can send A-law audio where Vapi expects µ-law. Switch to a SIP trunk.
+- **SMS arrives but the assistant does not reply.** Vapi needs a saved payment method, and the number must be 10DLC-approved.
+- **Calls are rejected under load.** Concurrency is shared across inbound and outbound calls in your organization. Buy more lines or spread calls out.
+
+## FAQ
+
+### How do I give my Vapi assistant a phone number?
+
+Open **Phone Numbers** in the Vapi dashboard, create a free Vapi number or import one from Twilio or Telnyx, then select your assistant under **Inbound Settings**.
+
+### Can I use my existing business number with Vapi?
+
+Yes. If the number is on Twilio or Telnyx, import it. If it is on another carrier, connect it with a SIP trunk, or port it to Twilio or Telnyx first.
+
+### Why can't my free Vapi number make outbound calls?
+
+Free Vapi numbers are inbound only. Import a Twilio or Telnyx number to call out.
+
+### Does Vapi send SMS?
+
+Only through imported Twilio numbers, for US-to-US messages, after 10DLC approval.
+
+---
+
+# How to connect a phone number to Retell AI
+
+> Connect a phone number to a Retell AI agent: buy a Retell number, or bring your own Twilio or Telnyx number over SIP trunking. Plus SMS setup and costs.
+>
+> Source: https://numberforagents.com/guides/connect-phone-number-to-retell-ai · Updated 2026-10-08 · Numbers for Agents
+
+Retell gives you two ways to put a phone number on an agent. You can buy a number inside Retell, or you can connect a number you already own through SIP trunking. This guide covers both, plus SMS. Steps follow Retell's docs as of October 8, 2026.
+
+> **Short answer:** buy a Retell number ($2 per month, US and Canada) to start fast. Connect your own Twilio or Telnyx number over SIP to keep control of the number and pay no Retell telephony fee. In both cases, a number only takes calls after you bind an agent to it.
+
+## Option 1: Buy a number in Retell
+
+1. In the Retell dashboard, open **Phone Numbers** and click **+**.
+2. Optionally choose an area code.
+3. Bind an inbound agent, an outbound agent, or both.
+
+A payment method is required. Retell sells US and Canada numbers only. Local numbers cost $2 per month. US toll-free numbers cost $5 per month. You can also buy through the API with `POST https://api.retellai.com/create-phone-number` and an `area_code`.
+
+## Option 2: Connect your own number with SIP trunking
+
+Retell calls this "custom telephony". Your carrier keeps the number. Calls flow between your carrier and Retell over SIP. Retell does not charge for the telephony on these calls. Your carrier bills the minutes.
+
+Key facts for any carrier:
+
+- Retell's SIP server is `sip:sip.retellai.com`. Point inbound (origination) calls there.
+- Retell has no termination URI of its own. You give Retell your carrier's termination URI for outbound calls.
+- Supported transports: TCP (recommended), UDP, TLS. Codecs: PCMU, PCMA, G.722.
+- The old endpoint `sip:5t4n6j0wnrl.sip.livekit.cloud` was retired on September 30, 2026. Update any trunk that still uses it.
+
+### Twilio Elastic SIP to Retell
+
+1. In Twilio, create an **Elastic SIP Trunk**.
+2. Under **Termination**, note the termination SIP URI. Pick a localized URI near your region. Allow Retell's signaling IPs (`18.98.16.120/30`) or create a credential list with a username and password.
+3. Under **Origination**, add the URI `sip:sip.retellai.com`.
+4. Buy a number in Twilio, or move an existing number onto the trunk.
+5. In Retell, open **Phone Numbers**, click **+**, then **Connect to your number via SIP trunking**. Enter the termination URI and the credentials if you made them. Click **Test SIP Connection**, then **Save**.
+6. Bind an agent to the number.
+7. For international calls, enable the countries under Twilio's **Voice Geographic Permissions > Elastic SIP Trunking**.
+
+### Telnyx to Retell
+
+1. In Telnyx, create a SIP trunk of type **FQDN**. Add `sip.retellai.com` with DNS record type **SRV**.
+2. Set outbound authentication to **credentials** (username and password).
+3. In inbound settings, set the number format to `+E.164`, enable codecs G722, G711U, and G711A, and choose TCP.
+4. Create an **Outbound Voice Profile** and select it in the trunk's outbound settings.
+5. Move your numbers onto the trunk.
+6. In Retell, import the number with Telnyx's SIP address (for example `sip.telnyx.com`) as the termination URI. Add the username and password, and the header `X-Telnyx-Username: <username>` that Telnyx requires on outbound calls.
+
+### Import with the API
+
+```bash
+curl -X POST https://api.retellai.com/import-phone-number \
+  -H "Authorization: Bearer $RETELL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number": "+14155550123",
+    "termination_uri": "your-trunk.pstn.twilio.com",
+    "sip_trunk_auth_username": "YOUR_SIP_USERNAME",
+    "sip_trunk_auth_password": "YOUR_SIP_PASSWORD",
+    "nickname": "Support line"
+  }'
+```
+
+Then bind agents in the dashboard or through the update phone number API. Retell also has guides for Vonage, Five9, Genesys, Avaya, and Amazon Connect.
+
+## Bind agents and route calls
+
+A Retell number "can receive and make calls only after you bind an agent to it". You can bind different agents for inbound and outbound calls. Leave one direction unset to disable it.
+
+To pick the agent per call, set an `inbound_webhook_url` on the number. Retell calls your server for each inbound call, and you return the agent and any dynamic variables, or reject the call. Platforms that serve many customers use this to route by caller or by number.
+
+When all concurrent lines are busy, Retell holds the call for about 40 seconds. Then it transfers to the number's fallback number, or ends the call.
+
+## Add SMS
+
+SMS on Retell works on Retell-bought Twilio numbers, and on your own numbers that passed A2P 10DLC registration. Telnyx numbers do not support SMS on Retell yet. SMS is US only and excludes toll-free numbers.
+
+For a Retell-bought number, Retell runs the registration with you:
+
+1. Create a business profile (free).
+2. Register a brand: $4 one time for low volume (under 6,000 segments per day) or $45 for standard.
+3. Register a campaign: $15 one time, non-refundable.
+4. After approval, pay $20 per month per number plus $0.01 per SMS.
+
+Approval takes about 2 to 3 weeks. Read the [A2P 10DLC guide](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents) so your campaign passes the first time.
+
+## What it costs
+
+Retell's voice infrastructure fee is $0.055 per minute. LLM and voice costs come on top. Retell's own example totals $0.11 per minute. Retell-bought US numbers on Twilio carry a telephony rate of $0.015 per minute. SIP trunking has no Retell telephony charge, so you pay your carrier instead. Pay-as-you-go includes 20 concurrent calls. Extra lines cost $8 per month. [Retell pricing](https://www.retellai.com/pricing).
+
+## FAQ
+
+### Can I use my own phone number with Retell AI?
+
+Yes. Connect it over SIP trunking from Twilio, Telnyx, Vonage, or a contact-center platform. If your carrier does not support SIP trunking, port the number to one that does.
+
+### How much does a Retell phone number cost?
+
+$2 per month for a US or Canada local number, and $5 per month for a US toll-free number. Numbers you connect over SIP have no Retell number fee.
+
+### Does Retell support SMS?
+
+Yes, in the US, on Retell Twilio numbers or your own A2P-registered numbers. Telnyx numbers are not supported for SMS yet. Retell adds $20 per month per number plus $0.01 per message.
+
+### Why does my Retell number not answer calls?
+
+Check that an inbound agent is bound to the number. Without a bound agent, the number does not take calls.
+
+---
+
+# How to give Claude or any MCP agent a phone number
+
+> Give Claude Code, Claude Desktop, or any MCP agent a real phone number. Telephony MCP servers compared, with install commands and safety rules.
+>
+> Source: https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number · Updated 2026-10-08 · Numbers for Agents
+
+An MCP server turns a telephony API into tools an AI agent can call. With the right server installed, Claude Code or Claude Desktop can buy a number, send a text, or place a call from a chat. This guide compares the telephony MCP servers available today and shows how to install each one. Facts come from each vendor's docs, checked on October 8, 2026.
+
+> **Short answer:** for an agent that buys its own number and sends SMS, use AgentPhone's MCP server or Telnyx's remote MCP server. For voice calls through an existing voice platform, use the Bland, Retell, or Vapi MCP server. Twilio's official MCP server only searches Twilio's docs today.
+
+## What each server can do
+
+| MCP server | Buy a number | Send SMS | Place a call | Auth |
+|---|---|---|---|---|
+| AgentPhone | Yes (`buy_number`) | Yes (`send_message`) | Yes (`make_call`) | OAuth or API key |
+| Telnyx remote | Yes, through `invoke_api_endpoint` | Yes, same tool | Yes, same tool | Telnyx API key |
+| Retell | Import and provision, through `invoke_api_endpoint` | No | Yes | Retell API key |
+| Bland | Through REST passthrough tools | No dedicated tool | Yes (`create_call`) | API key or OAuth |
+| Vapi | No (list only) | No | Yes (`create_call`) | Vapi API key |
+| Twilio official | No | No | No (docs search only) | None |
+
+**Generic tools.** Telnyx and Retell expose three tools: list endpoints, get an endpoint's schema, and invoke an endpoint. The agent can reach the whole API this way, but it must find the right endpoint first. Dedicated tools such as AgentPhone's `send_message` are easier for a model to use correctly.
+
+## AgentPhone
+
+AgentPhone's server has 28 tools, including `buy_number`, `send_message` (SMS or iMessage), `get_messages`, `make_call`, `attach_number`, and `set_webhook`. Numbers are US and Canada.
+
+Claude Code:
+
+```bash
+claude mcp add --transport http agentphone https://mcp.agentphone.ai/mcp
+```
+
+This signs in through your browser. To use an API key instead, add `--header "Authorization: Bearer YOUR_API_KEY"`. In Claude Desktop, open **Settings > Connectors > Add custom connector** and paste the URL. Numbers cost $3 per month and SMS costs $0.02 per segment. [Docs](https://docs.agentphone.ai/mcp).
+
+## Telnyx
+
+Telnyx's remote server at `https://api.telnyx.com/v2/mcp` gives the agent the full Telnyx API: search numbers, buy them, send messages, and control calls. `invoke_api_endpoint` can change state and spend money, so scope your API key with care.
+
+In Claude Desktop, add it as a custom connector under **Settings > Connectors**, then grant access in the Telnyx Portal. Telnyx also ships a local server:
+
+```bash
+claude mcp add telnyx_mcp_api --env TELNYX_API_KEY="YOUR_KEY" -- npx -y telnyx-mcp
+```
+
+The local package runs in "code mode": a docs search tool plus a tool that runs Telnyx SDK code in a sandbox. [Docs](https://developers.telnyx.com/docs/development/mcp/remote-mcp).
+
+## Retell
+
+```bash
+claude mcp add --transport http retell https://mcp.retellai.com \
+  --header "Authorization: Bearer $RETELL_API_KEY"
+```
+
+The server can import, provision, and list phone numbers and create calls. Use it when your voice agent already runs on Retell. [Docs](https://docs.retellai.com/get-started/mcp-server).
+
+## Bland
+
+```bash
+claude mcp add --transport http bland https://api.bland.ai/v1/mcp \
+  --header "Authorization: Bearer $BLAND_API_KEY"
+```
+
+To sign in without a key, add the server without the header, then run `claude mcp login bland`. Bland marks `create_call` as destructive. It also has `wait_for_call` and `get_call_log`, so an agent can place a call and read the result. [Docs](https://docs.bland.ai/integrations/mcp/clients/claude-code).
+
+Bland also sells an Agent Phone Plan that an agent can sign up for itself: one US number with calls and texts for $29.99 per month, capped at 50 calls and 100 texts per day.
+
+## Vapi
+
+Vapi's hosted server is at `https://mcp.vapi.ai/mcp` with a Bearer Vapi API key. It can create assistants and calls and list phone numbers. It cannot buy or import numbers and has no SMS tool. Get a number in the dashboard first. See [connect a phone number to Vapi](https://numberforagents.com/guides/connect-phone-number-to-vapi). [Docs](https://docs.vapi.ai/sdk/mcp-server).
+
+## Twilio
+
+Twilio's official MCP server (public beta) is read-only. It searches Twilio's documentation and does not execute API calls. It cannot send SMS, make calls, or buy numbers.
+
+```bash
+claude mcp add --transport http twilio-docs https://mcp.twilio.com/docs
+```
+
+Twilio's older `@twilio-alpha/mcp` package exposes the Twilio API as tools, but Twilio calls it a proof of concept. Limit it to the services you need with `--services` or `--tags`. [Docs](https://www.twilio.com/docs/ai/mcp).
+
+## Safety rules for agents with a phone
+
+A phone number lets an agent reach real people and spend real money. Set limits before you hand it over.
+
+- **Use a scoped key.** Give the agent a key for a sub-account or a project with a spend cap, not your main account key.
+- **Require approval for outbound actions.** Claude Code asks before each tool call by default. Keep that on for `send_message`, `make_call`, and `buy_number`.
+- **Respect consent.** In the US, texting or calling people with an automated system or AI voice needs their consent. Business texts from local numbers need [A2P 10DLC registration](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents).
+- **Never use agent numbers for verification bypass.** Using a number to receive one-time codes for accounts you do not own breaks most terms of service.
+- **Log everything.** Keep a record of each message and call the agent made.
+
+## Where Numbers for Agents fits
+
+Numbers for Agents is building a number API designed for agents: numbers, SMS, signed webhooks, SIP, and raw WebSocket audio for teams that run their own voice stack. It is in private beta. Join the waitlist below to get access.
+
+## FAQ
+
+### Can Claude make phone calls?
+
+Yes, through an MCP server. Install a telephony MCP server such as AgentPhone, Bland, Retell, or Vapi in Claude Code or Claude Desktop. Claude can then place calls through that provider's tools. The provider runs the voice on the call.
+
+### Can Claude send a text message?
+
+Yes. With AgentPhone's MCP server, Claude can send SMS with `send_message`. With Telnyx's remote MCP server, Claude can call the messaging API. You need a number on that account first.
+
+### Does Twilio have an MCP server?
+
+Yes, but the official one only searches Twilio's docs. The `@twilio-alpha/mcp` package can call the Twilio API, and Twilio labels it a proof of concept.
+
+### Is it safe to give an AI agent a phone number?
+
+It is safe with limits: a scoped API key, a spend cap, approval for outbound messages and calls, and consent from the people the agent contacts.
+
+---
+
+# A2P 10DLC registration for AI agents
+
+> Register an AI agent's SMS number for A2P 10DLC: brand types, use cases, 2026 fees, approval time, toll-free vs 10DLC, and why campaigns get rejected.
+>
+> Source: https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents · Updated 2026-10-08 · Numbers for Agents
+
+If your AI agent sends texts from a US local number, the number must be registered for A2P 10DLC. US carriers block unregistered business texts. This guide explains what to register, what it costs, how long it takes, and how to get approved on the first try. Facts are current as of October 8, 2026. This is not legal advice.
+
+> **Short answer:** register a **brand** (your business) and a **campaign** (what the agent texts about) with The Campaign Registry through your SMS provider. Expect $4.50 to $46 one time for the brand, $15 per campaign review, and $1.50 to $10 per month per campaign. Campaign review takes about 5 to 10 business days. Most rejections come from a weak opt-in description, a missing privacy policy, or sample messages that do not match the use case.
+
+## What A2P 10DLC is
+
+A2P means application-to-person: messages sent by software, not typed by a person on a phone. 10DLC means a standard 10-digit long code, the normal US local number. Carriers treat every message from a CPaaS platform such as Twilio or Telnyx as A2P. An AI agent's texts are always A2P.
+
+Registration has two layers:
+
+- **Brand:** the business that sends the messages, identified by its legal name and EIN.
+- **Campaign:** the use case, with sample messages and a description of how people opt in. Numbers are linked to a campaign. Throughput is set per campaign.
+
+## Unregistered texts are blocked
+
+Registration is not optional. Twilio has blocked all unregistered 10DLC messages to the US since September 1, 2023. Blocked messages fail with error 30034 and are still billed. Telnyx blocks unregistered 10DLC traffic since February 3, 2025. Messages from a campaign that is still pending review are blocked too. Do not launch an SMS agent before its campaign is approved.
+
+## Pick a brand type
+
+| | Sole Proprietor | Low Volume Standard | Standard |
+|---|---|---|---|
+| Who | No EIN | Has an EIN, low volume | Has an EIN |
+| Campaigns and numbers | 1 campaign, 1 number | Mixed campaign, several numbers | Many campaigns |
+| Daily limit (all US carriers) | about 3,000 segments | about 6,000 segments | Set by trust score |
+| Daily limit to T-Mobile | 1,000 | 2,000 | Up to 200,000 |
+| Throughput | 1 message/second | 3.75 messages/second | Up to 225 messages/second |
+| Brand fee (one time) | $4.50 | $4.50 | $46, includes vetting |
+
+Source: [Twilio brand comparison](https://support.twilio.com/hc/en-us/articles/4407882914971) and [Twilio 10DLC fees](https://support.twilio.com/hc/en-us/articles/1260803965530).
+
+A business with an EIN cannot register as a Sole Proprietor. Most AI agent products should register as Low Volume Standard to start, and move to Standard when volume grows past about 6,000 segments a day.
+
+Public for-profit companies must also pass Authentication+ (Auth+), an email check against the company's domain. It costs $12.50 per attempt. Since January 30, 2026, public companies that have not passed it cannot register new campaigns.
+
+## Pick a campaign use case
+
+Choose the use case that matches what the agent actually texts. Common choices for agents:
+
+- **Customer Care:** an agent that answers support questions and account issues.
+- **Account Notifications:** status updates, such as order or ticket changes.
+- **Delivery Notifications:** shipping and delivery updates.
+- **Mixed or Low Volume Mixed:** an agent that does several of these. Low Volume Mixed has the lowest fee and the lowest throughput.
+- **Marketing:** promotions. It needs stricter consent. Keep it in a separate campaign.
+
+An agent that books appointments and answers questions is usually Mixed or Customer Care. If the use case on the form does not match the sample messages, the campaign gets rejected.
+
+## What it costs
+
+These are The Campaign Registry fees that Twilio and Telnyx pass through at cost, as of October 2026:
+
+| Fee | Amount |
+|---|---|
+| Brand, Sole Proprietor or Low Volume Standard | $4.50 one time |
+| Brand, Standard (includes secondary vetting) | $46 one time |
+| Authentication+ (public companies) | $12.50 per attempt |
+| Campaign vetting | $15 per submission, not refunded if rejected |
+| Campaign, Low Volume Mixed | $1.50 per month |
+| Campaign, Sole Proprietor | $2 per month |
+| Campaign, Standard use cases | $10 per month |
+
+Telnyx bills the first 3 months of the campaign fee up front. Other providers can charge more. Bandwidth lists higher figures, for example. Carriers also add a per-message surcharge on registered traffic, about $0.0035 to $0.005 per outbound SMS segment depending on the carrier.
+
+Because the $15 vetting fee is charged on every submission, a rejected campaign costs you money and a week. Get it right the first time.
+
+## How long it takes
+
+- **Brand registration:** minutes, sometimes up to 24 hours.
+- **Secondary vetting (Standard brands):** up to 7 days.
+- **Campaign review:** about 5 to 10 business days. Longer when the registry is busy.
+
+Plan for two weeks from start to first approved text. Retell, for example, tells customers to expect 2 to 3 weeks.
+
+## How to get approved the first time
+
+Carriers reject campaigns for the same reasons again and again. Twilio's [rejection list](https://support.twilio.com/hc/en-us/articles/15778026827291) groups them like this:
+
+1. **Opt-in is unclear.** Describe exactly where and how a person agrees to texts. Link to a screenshot or a public page with the form. The checkbox must not be pre-checked. Texting consent must not be required to use the service.
+2. **Consent language is missing.** The opt-in form must name your brand, say what messages the person will get, say how often, say "Msg & data rates may apply", and explain STOP and HELP.
+3. **No privacy policy.** Link a privacy policy from the opt-in flow. It must say you do not share mobile opt-in data with third parties for marketing.
+4. **No terms.** Link SMS terms from the opt-in flow.
+5. **Sample messages do not match.** Write 2 to 5 real samples. Include your brand name and "Reply STOP to opt out" in at least one. Do not use public URL shorteners. Use HTTPS links.
+6. **Website problems.** The website must be live, public, and show who the business is. A login page alone fails.
+7. **Brand mismatch.** The brand name must match the website and the EIN record.
+
+For an AI agent, add one line to the campaign description that says the replies are generated by an automated assistant on behalf of your business. A clear description of who sends the messages avoids follow-up questions from reviewers.
+
+## Toll-free: the faster alternative
+
+A toll-free number skips The Campaign Registry. It uses its own verification instead.
+
+- **Review time:** about 3 to 5 business days.
+- **No brand or campaign fees.** You pay the number fee and message fees.
+- **Default throughput:** 3 messages per second after verification.
+- **Requirements:** a registered business with an EIN (since January 1, 2026), and separate privacy policy and terms URLs (since September 15, 2026).
+
+Unverified toll-free numbers are blocked. Toll-free numbers work well for support and notification agents. Choose a local 10DLC number when a local area code matters to your users, or when you need one number per location.
+
+## AI agent rules on top of 10DLC
+
+Registration does not replace consent law. Two rules matter most for agents:
+
+- **Opt-outs.** A reply such as STOP, QUIT, END, REVOKE, OPT OUT, CANCEL, or UNSUBSCRIBE must stop messages. You must honor it within 10 business days, and in practice your agent should stop at once. An FCC order adopted September 30, 2026 (FCC 26-67) will let senders name one exclusive opt-out method, such as replying STOP, once it takes effect. It takes effect 30 days after Federal Register publication.
+- **Never let the model ignore STOP.** Handle opt-out keywords in code before the message reaches the model. A model can misread "stop texting me" as a question.
+
+## FAQ
+
+### Does an AI agent need A2P 10DLC registration?
+
+Yes, if it sends texts to US numbers from a US local number. Carriers treat all software-sent texts as A2P, and unregistered traffic is blocked.
+
+### How much does 10DLC registration cost?
+
+For a typical small agent product: $4.50 for the brand, $15 for campaign vetting, and $1.50 to $10 per month for the campaign. A Standard brand costs $46 one time. Your provider may add its own fees.
+
+### How long does 10DLC approval take?
+
+Brand registration takes minutes to a day. Campaign review takes about 5 to 10 business days. Plan for two weeks.
+
+### Is toll-free better than 10DLC for an AI agent?
+
+Toll-free is faster to verify and has no registry fees, so it suits support and notification agents. 10DLC suits agents that need local area codes or one number per location.
+
+### Why was my 10DLC campaign rejected?
+
+The most common causes are an unclear opt-in flow, missing consent language, no privacy policy or terms link, and sample messages that do not match the use case. Your provider returns an error code that names the reason.
+
+---
+
+# Best phone number APIs for AI agents (2026)
+
+> Compare phone number APIs for AI agents: AgentPhone, Dial, AgentCall, Bland, Twilio, Telnyx. Prices, raw audio, SIP, MCP, and 10DLC, checked October 2026.
+>
+> Source: https://numberforagents.com/compare/best-phone-number-apis-for-ai-agents · Updated 2026-10-08 · Numbers for Agents
+
+An AI agent that texts or talks to people needs a real phone number. In 2026 you can get one from two kinds of company. **Agent-first APIs** such as AgentPhone, Dial, AgentCall, and Saperly sell a number plus a ready-made agent layer. **Carriers and CPaaS platforms** such as Twilio and Telnyx sell raw telecom building blocks that you assemble yourself.
+
+This page compares them on what matters to a developer: price, how voice reaches your code, raw audio access, SIP, MCP, and SMS registration. Every price comes from the vendor's public pricing page, checked on October 8, 2026.
+
+> **Short answer:** pick an agent-first API if you want text-in, text-out voice and SMS with almost no telecom work. Pick Twilio or Telnyx if you run your own speech pipeline and want raw call audio at the lowest per-minute cost. The agent-first APIs charge about $0.13 per minute for voice. Carrier voice plus a WebSocket audio stream costs about 1 to 2 cents per minute.
+
+## Comparison table
+
+| Provider | Number / month | Voice, your own agent | SMS (US) | Raw audio to your code | SIP | MCP server |
+|---|---|---|---|---|---|---|
+| AgentPhone | $3 | $0.13/min | $0.02/segment | Not documented | On request | Yes |
+| Dial | $3 | $0.13/min | $0.02/message | "Own LLM over WebSocket" | Not documented | Yes |
+| AgentCall | from $2 (Pro plan $19.99/mo) | $0.035/min voice, $0.10/min AI voice with your key | $0.015 sent | Not documented | Not documented | Yes |
+| Saperly | from $2 | $0.13/min | $0.02/segment | Not documented | Not documented | Yes |
+| Bland Agent Phone Plan | $29.99/mo bundle | Included (1 concurrent call, 50 calls/day) | Included (100 texts/day) | No, Bland runs the agent | No | Yes |
+| Twilio | $1.15 | $0.0085 to $0.014/min + $0.0044/min stream | $0.0083/segment + carrier fee | Yes, Media Streams | Yes | Docs only (official) |
+| Telnyx | $1.00 | about $0.005 to $0.007/min + $0.0035/min stream | $0.004/part + carrier fee | Yes, media streaming | Yes | Yes |
+
+Prices are US list prices for pay-as-you-go accounts. "Not documented" means we did not find it in the vendor's public docs on October 8, 2026. It does not mean the feature cannot exist.
+
+## How voice reaches your code
+
+This is the biggest difference between the options, and the pricing pages hide it.
+
+**Text over webhook.** The provider runs speech-to-text and text-to-speech. Your server receives what the caller said as text and replies with text. AgentPhone documents this as its "webhook mode". It is the fastest way to start. You do not choose the speech models, the voice, or how interruptions work.
+
+**Raw audio over WebSocket.** The provider streams the call's audio frames to your server, and you stream audio back. You choose the speech-to-text model, the LLM, the voice, and the turn-taking logic. Twilio Media Streams and Telnyx media streaming both work this way, and both are bidirectional. This is the path for teams that already run a voice pipeline, such as an agent built on LiveKit or Pipecat. See [how AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls).
+
+**SIP.** The provider hands the call to your SIP endpoint. Voice platforms such as Vapi, Retell, and LiveKit accept SIP. Twilio and Telnyx sell SIP trunking. AgentPhone lists SIP trunking as "request access".
+
+**Hosted agent.** The provider runs the whole agent. AgentPhone charges $0.22 per minute and Dial charges $0.22 per minute for this. Saperly charges $0.26 per minute.
+
+## Provider notes
+
+### AgentPhone
+
+A Y Combinator Spring 2026 company. US and Canada numbers. Channels: SMS, MMS, iMessage, voice, and WhatsApp Business. One HMAC-signed webhook covers calls and messages. Has an MCP server, Node and Python SDKs, and API endpoints for 10DLC registration. iMessage lines cost $150 to $250 per month. Every account starts with $5 of credit. [Pricing](https://agentphone.ai/pricing).
+
+### Dial
+
+Voice, SMS, iMessage, and WhatsApp (beta) through a REST API, a remote MCP server, SDKs, and a CLI. Its self-hosted voice mode is described as "your own LLM over WebSocket". Free accounts get $5 of credit and are capped at 5 minutes per call and 2 concurrent calls until the first top-up. 10DLC registration is done in the dashboard for a one-time fee. [Pricing](https://getdial.ai/pricing).
+
+### AgentCall
+
+Numbers, SMS, AI voice, and caller memory in one API, with a hosted MCP server. The free plan is a 72-hour trial with one number. Pro is $19.99 per month plus usage. Its site also offers OTP extraction, framed as QA testing of your own app's SMS verification. [Site](https://agentcall.co/).
+
+### Saperly
+
+Positions itself as "a phone carrier for AI agents" with compliance as the main feature: AI disclosure, consent checks at call time, an audit trail, and STOP/HELP handling. 10DLC registration is part of number provisioning. [Site](https://saperly.com).
+
+### Bland Agent Phone Plan
+
+Bland sells a bundle for agents: one US number with voice and SMS to the US and Canada for $29.99 per month ($14.99 the first month). Bland's own voice agent runs the calls. The plan has hard caps: 1 concurrent call, 50 calls per day, and 100 texts per day. An agent can sign itself up. It suits a personal or test agent, not production volume. [Docs](https://docs.bland.ai/platform/agent-phone-plan).
+
+### Twilio
+
+The default choice for most teams. Local numbers cost $1.15 per month. Media Streams sends raw call audio over WebSockets for $0.0044 per minute, and ConversationRelay handles speech for you at $0.07 per minute. Twilio has the widest documentation and the most voice-platform integrations. See [Twilio vs Telnyx for AI voice agents](https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents). [Voice pricing](https://www.twilio.com/en-us/voice/pricing/us).
+
+### Telnyx
+
+Lower list prices than Twilio on numbers, SMS, and voice. Media streaming over WebSockets costs $0.0035 per minute and supports codecs up to OPUS and L16. Telnyx says it owns its network and holds its own carrier licenses. [Call Control pricing](https://telnyx.com/pricing/call-control).
+
+## Cost of 1,000 minutes of voice
+
+A rough comparison for one US number and 1,000 inbound minutes per month, when you run your own agent:
+
+| Option | Number | 1,000 minutes | Total |
+|---|---|---|---|
+| AgentPhone (webhook mode) | $3 | $130 | about $133 |
+| Dial (self-hosted) | $3 | $130 | about $133 |
+| Twilio + Media Streams | $1.15 | $8.50 + $4.40 | about $14 |
+| Telnyx + media streaming | $1.00 | about $5.20 + $3.50 | about $10 |
+
+The carrier totals do not include your speech-to-text, LLM, and text-to-speech costs. The agent-first prices include speech. Compare total cost per minute after you add your model bills. For many teams, the agent-first price is cheaper until volume grows, because it saves engineering time.
+
+## Which one to choose
+
+- **You want a working phone agent this week and do not run speech models:** an agent-first API such as AgentPhone or Dial.
+- **You need iMessage:** AgentPhone or Dial. Carriers do not sell iMessage lines.
+- **You already run Vapi, Retell, or LiveKit:** a carrier number imported into that platform. See [Vapi phone numbers](https://numberforagents.com/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx).
+- **You run your own speech pipeline and care about cost per minute:** Twilio or Telnyx with a WebSocket media stream.
+- **You provision numbers for many customers:** read [one number per customer](https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms) first. Account structure and SMS registration matter more than the per-minute price.
+
+## Where Numbers for Agents fits
+
+Numbers for Agents is building the plumbing layer: numbers, SMS, signed webhooks, SIP, and raw WebSocket audio, with no bundled assistant. It targets teams that bring their own voice stack and want an API designed for agents. It is in private beta, with no public pricing yet. It is not on the comparison table because nothing is live to compare. Join the waitlist below to get access.
+
+## FAQ
+
+### What is the cheapest way to give an AI agent a phone number?
+
+A carrier number. Telnyx lists US local numbers at $1.00 per month and Twilio at $1.15 per month. Plivo and SignalWire list $0.50 per month. You then pay per minute and per message, and you build the speech layer yourself.
+
+### Which phone APIs have an MCP server?
+
+AgentPhone, Dial, AgentCall, Saperly, and Bland offer one. Telnyx has a remote MCP server that can call its full API, including buying numbers. Twilio's official MCP server only searches Twilio's docs. Its older `@twilio-alpha/mcp` package can call the API, but Twilio labels it a proof of concept. An MCP server lets a coding agent such as Claude Code buy numbers and send messages through tool calls. See [give a Claude or MCP agent a phone number](https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number).
+
+### Do agent-first phone APIs handle 10DLC registration?
+
+Some help with it. AgentPhone has registration API endpoints. Dial registers through its dashboard for a one-time fee. Saperly includes registration in provisioning. Carrier fees still apply in every case. See the [A2P 10DLC guide](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents).
+
+### Can I use an agent-first number with Vapi or Retell?
+
+Usually not directly. Vapi and Retell import numbers from carriers such as Twilio and Telnyx, or accept calls over SIP. Check whether the agent-first provider offers SIP before you plan on it.
+
+---
+
+# Twilio vs Telnyx for AI voice agents (2026)
+
+> Twilio vs Telnyx for AI voice and SMS agents: number, voice, SMS, WebSocket media stream, SIP, and 10DLC prices side by side, plus which to pick.
+>
+> Source: https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents · Updated 2026-10-08 · Numbers for Agents
+
+Twilio and Telnyx are the two carriers most AI voice teams choose between. Both sell phone numbers, SMS, programmable voice, SIP trunking, and a WebSocket stream of raw call audio. Both work with Vapi, Retell, and LiveKit. The real differences are price, documentation depth, and network ownership.
+
+All prices below are US pay-as-you-go list prices, checked on October 8, 2026, from each company's public pricing pages.
+
+> **Short answer:** Telnyx is cheaper on almost every line item: about 13% less per number, about half the SMS base price, and roughly half the per-minute voice cost. Twilio has deeper documentation, more third-party examples, and more native integrations. For a new AI voice agent with real volume, Telnyx usually costs less. For a team that wants the most examples and support answers, Twilio is the safer start.
+
+## Price comparison
+
+| Item | Twilio | Telnyx |
+|---|---|---|
+| US local number | $1.15/month | $1.00/month |
+| US toll-free number | $2.15/month | $1.00/month |
+| Inbound voice, local | $0.0085/min | about $0.0052/min |
+| Outbound voice, local | $0.0140/min | about $0.007/min |
+| WebSocket audio stream | $0.0044/min (Media Streams) | $0.0035/min (media streaming) |
+| Managed speech relay | $0.07/min (ConversationRelay) | $0.05/min (Conversation Relay) |
+| Call recording | $0.0025/min | $0.002/min |
+| SIP trunk, inbound local | $0.0034/min | from $0.0032/min |
+| SIP trunk, outbound US | $0.0100/min | from $0.005/min |
+| SMS, US local, per segment | $0.0083 + carrier fee | $0.004 + carrier fee |
+| 10DLC brand registration | $4.50 or $46 | $4.50 |
+| 10DLC campaign vetting | $15 | $15 per review |
+| 10DLC standard campaign | $10/month | $10/month |
+
+Telnyx voice is two fees: a $0.002 per minute Call Control fee plus the SIP rate. The table shows the sum. Carrier SMS surcharges (for example $0.0035 to $0.005 per outbound message) are passed through by both.
+
+Sources: [Twilio voice](https://www.twilio.com/en-us/voice/pricing/us), [Twilio SMS](https://www.twilio.com/en-us/sms/pricing/us), [Twilio SIP trunking](https://www.twilio.com/en-us/sip-trunking/pricing/us), [Twilio 10DLC fees](https://support.twilio.com/hc/en-us/articles/1260803965530-Pricing-and-Fees-for-A2P-10DLC-Service), [Telnyx Call Control](https://telnyx.com/pricing/call-control), [Telnyx SIP](https://telnyx.com/pricing/elastic-sip), [Telnyx messaging](https://telnyx.com/pricing/messaging), [Telnyx 10DLC fees](https://support.telnyx.com/en/articles/5634625-10dlc-fees-and-charges).
+
+## What 10,000 voice minutes cost
+
+For an inbound AI voice agent that streams audio to your own server:
+
+| | Twilio | Telnyx |
+|---|---|---|
+| 10,000 inbound minutes | $85 | about $52 |
+| 10,000 minutes of audio stream | $44 | $35 |
+| 1 local number | $1.15 | $1.00 |
+| **Total telecom** | **about $130** | **about $88** |
+
+Your speech-to-text, LLM, and text-to-speech costs come on top. They are usually larger than the telecom bill, so the carrier difference matters most at high volume.
+
+## Raw audio for your own voice pipeline
+
+Both carriers can stream call audio to your WebSocket server and accept audio back.
+
+- **Twilio Media Streams** supports one-way and two-way streams. Two-way streams let your app play generated speech into the call. It is the most widely documented option, and many open-source voice agent examples use it.
+- **Telnyx media streaming** is also bidirectional and supports more codecs: PCMU, PCMA, G722, OPUS, AMR-WB, and L16. Wideband codecs matter when the call leg itself is wideband, such as a SIP or WebRTC call. Most calls from mobile phones reach you as 8 kHz audio either way.
+
+If you do not want to handle audio, both sell a relay product that does speech-to-text and text-to-speech for you and sends your server text: Twilio ConversationRelay at $0.07 per minute and Telnyx Conversation Relay at $0.05 per minute.
+
+## SIP and voice platforms
+
+If your agent runs on Vapi, Retell, or LiveKit, the carrier mainly supplies the number and the SIP leg.
+
+- **Vapi** imports numbers from both Twilio and Telnyx. See [Vapi phone numbers: free vs Twilio vs Telnyx](https://numberforagents.com/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx).
+- **Retell** connects to both through SIP trunking. See [connect a phone number to Retell](https://numberforagents.com/guides/connect-phone-number-to-retell-ai).
+- **LiveKit** documents SIP trunks from both carriers for LiveKit Agents.
+
+## Network and support
+
+Telnyx says it owns its network and holds its own telecom licenses, with a private backbone between its points of presence. That is Telnyx's own claim. Twilio has the larger ecosystem: more SDKs, more tutorials, more answers on forums, and more voice-platform defaults built around it.
+
+## SMS for agents
+
+Both require A2P 10DLC registration for business texts from US local numbers, and both pass through the registry fees. Telnyx's base SMS price is about half of Twilio's. For a conversational agent, the carrier surcharges and 10DLC fees are often a large share of the bill on both. See the [A2P 10DLC guide for AI agents](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents).
+
+## Which to choose
+
+- **Choose Telnyx** if cost per minute matters, you stream raw audio, or you want wideband codecs.
+- **Choose Twilio** if you want the most examples and integrations, or your team already uses it.
+- **Use both** if you need failover. Many platforms keep a second carrier for outages and number availability.
+
+Numbers for Agents is building a number API designed for agents, with SMS, signed webhooks, SIP, and raw WebSocket audio. It is in private beta. Join the waitlist below if you want to compare it when it opens.
+
+## FAQ
+
+### Is Telnyx cheaper than Twilio?
+
+Yes, at list price, on numbers, voice, media streaming, and SMS. For example, US local outbound voice is about $0.007 per minute on Telnyx and $0.014 on Twilio. Volume discounts can change the gap.
+
+### Do Twilio and Telnyx both work with Vapi?
+
+Yes. Vapi's dashboard and API import numbers from Twilio and from Telnyx. You can also connect either carrier to Vapi over SIP.
+
+### Which is better for low latency voice AI?
+
+Both stream audio over WebSockets. Latency depends more on where your servers run and on your speech and LLM models than on the carrier. Place your media server close to the carrier's media region and test with real calls.
+
+### Can I move my numbers from Twilio to Telnyx?
+
+Yes, by porting. US and Canada ports are usually self-service and take days. You also need to repoint webhooks and move your 10DLC campaign.
+
+---
+
+# Vapi phone numbers: free number vs Twilio vs Telnyx vs SIP
+
+> Free Vapi numbers are inbound only and US only. Compare Twilio import, Telnyx import, and BYO SIP trunk on Vapi for outbound calls, SMS, and cost.
+>
+> Source: https://numberforagents.com/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx · Updated 2026-10-08 · Numbers for Agents
+
+Vapi gives you four ways to put a phone number on an assistant: a free Vapi number, an imported Twilio number, an imported Telnyx number, or your own SIP trunk. They are not equal. The free number cannot make outbound calls or send SMS. Only an imported Twilio number supports SMS today.
+
+Facts on this page come from Vapi's docs and pricing page, checked on October 8, 2026.
+
+> **Short answer:** use the free Vapi number to test inbound calls. Import a Twilio number if you need outbound calls and SMS. Import a Telnyx number if you need outbound calls at a lower per-minute cost and do not need SMS through Vapi. Use a SIP trunk if your carrier is not Twilio or Telnyx, or you need custom routing.
+
+## Comparison table
+
+| | Free Vapi number | Twilio import | Telnyx import | BYO SIP trunk |
+|---|---|---|---|---|
+| Inbound calls | Yes | Yes | Yes | Yes |
+| Outbound calls | No | Yes | Yes, after an Outbound Voice Profile step | Yes |
+| SMS through Vapi | No | Yes, US to US, 10DLC-approved number | No | No |
+| Countries | US area codes only | Any Twilio number | Any Telnyx number | Any carrier |
+| Port out later | No | Yes, from Twilio | Yes, from Telnyx | Yes, from your carrier |
+| Who bills the minutes | Vapi credits | Twilio | Telnyx | Your carrier |
+| Setup time | Minutes | Minutes | Minutes, plus portal setup | An hour or more |
+
+Sources: [free telephony](https://docs.vapi.ai/free-telephony), [outbound calling](https://docs.vapi.ai/calls/outbound-calling), [import Twilio](https://docs.vapi.ai/phone-numbers/import-twilio), [Telnyx](https://docs.vapi.ai/telnyx), [inbound SMS](https://docs.vapi.ai/phone-numbers/inbound-sms), [SIP trunk](https://docs.vapi.ai/advanced/sip/sip-trunk).
+
+## Free Vapi numbers
+
+Every account gets one free Vapi number. Paid Success Packages include more: 5 on Core, 10 on Pro. You create it in the dashboard under **Phone Numbers > Create Phone Number > Free Vapi Number** and pick a US area code.
+
+The limits matter:
+
+- **Inbound only.** Vapi's docs say: "Free Vapi numbers are inbound only." You cannot place outbound calls or run Outbound Campaigns.
+- **US only.** Free numbers use US area codes. For other countries, import a number.
+- **No porting.** The number sits on Vapi's carrier accounts, so you cannot move it to another provider later.
+- **Calls still cost credits.** The number is free. The minutes are billed at Vapi rates.
+
+Older forum posts describe "10 outbound calls per day" on free numbers. That limit no longer applies, because the current docs remove outbound calling from free numbers entirely.
+
+## Import a Twilio number
+
+A Twilio number is the most complete option on Vapi. It supports inbound and outbound calls, and it is the only number type that supports SMS. You need the number, your Twilio Account SID, and your Auth Token. Step-by-step instructions are in [connect a phone number to Vapi](https://numberforagents.com/guides/connect-phone-number-to-vapi).
+
+SMS has conditions. Inbound SMS works only for US-to-US messages on a Twilio number with SMS enabled. The number must be 10DLC-approved. Vapi's SMS chat only replies to customers. The assistant cannot send the first message. Replies also need a saved payment method on your Vapi account. See the [A2P 10DLC guide](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents) for the registration step.
+
+## Import a Telnyx number
+
+Telnyx numbers cost less per minute than Twilio at list price. Import needs the number and a Telnyx API key. Outbound calls need one more step in the Telnyx Portal: add the Vapi connection to an Outbound Voice Profile. Vapi's docs warn that outbound "will not work properly" without it.
+
+Vapi documents one known issue. On some calls outside North America, Telnyx sends A-law audio (PCMA) while the integration expects µ-law (PCMU). That causes garbled audio. If you hit it, use a SIP trunk instead.
+
+## Bring your own SIP trunk
+
+A SIP trunk works with any carrier that supports SIP. You create a `byo-sip-trunk` credential with your carrier's gateway and auth, then register the number with `provider: "byo-phone-number"`. Inbound calls route to `{phoneNumber}@{credential_id}.sip.vapi.ai`. Vapi has guides for Twilio, Telnyx, Plivo, DIDWW, and others.
+
+SIP is the most flexible option and the most work. Choose it when your carrier is not Twilio or Telnyx, when you already run a trunk, or when you want one trunk for several voice platforms.
+
+## What it costs
+
+Vapi charges a $0.05 per minute hosting fee, plus model costs at cost. Calls on imported numbers are billed again by the carrier. As a reference, Twilio lists US local voice at $0.0085 per minute inbound and $0.014 outbound. Telnyx lists about $0.005 inbound and $0.007 outbound. Numbers cost $1.15 per month on Twilio and $1.00 on Telnyx. See [Twilio vs Telnyx](https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents) for the full table.
+
+Concurrency is per organization and shared between inbound and outbound calls. The pay-as-you-go plan includes 4 concurrent calls. Core includes 10. Extra lines cost $10 per month each. [Vapi pricing](https://vapi.ai/pricing).
+
+## Which to choose
+
+- **Testing an inbound assistant:** free Vapi number.
+- **Outbound calls or SMS:** Twilio import.
+- **Outbound calls at lower cost, no SMS needed:** Telnyx import.
+- **Any other carrier, or numbers you share across platforms:** SIP trunk.
+- **Numbers for many customers:** import numbers through the API, not the dashboard. See [one number per customer](https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms).
+
+## FAQ
+
+### Can a free Vapi number make outbound calls?
+
+No. Vapi's current docs say free Vapi numbers are inbound only. Import a Twilio or Telnyx number, or connect a SIP trunk, to place outbound calls.
+
+### Does Vapi support SMS?
+
+Yes, on imported Twilio numbers only, for US-to-US messages. The number must be 10DLC-approved. The customer must send the first message.
+
+### How many free numbers does Vapi give you?
+
+One on the pay-as-you-go plan. Core includes 5 and Pro includes 10.
+
+### Can I import a number from any carrier into Vapi?
+
+Twilio and Telnyx have native import. The API also accepts `provider: "vonage"`. For any other carrier, use a BYO SIP trunk.
+
+---
+
+# AI receptionist phone number: how to set one up
+
+> Give an AI receptionist a phone number: forwarding vs new number vs porting, call flow, human transfer, after-hours, SMS follow-up, and US AI voice rules.
+>
+> Source: https://numberforagents.com/use-cases/ai-receptionist-phone-number · Updated 2026-10-08 · Numbers for Agents
+
+An AI receptionist answers a business's phone calls: it greets callers, answers common questions, books appointments, takes messages, and transfers to a person when needed. The phone number is the part callers see. This page covers how to connect a number to an AI receptionist, the call flow to build, and the US rules that apply to AI voices.
+
+> **Short answer:** keep the business's existing number and forward calls to a new number that your AI receptionist answers. Port the number later if the setup works. Inbound calls answered by AI need no special consent. Outbound calls with an AI voice need the called person's prior express consent.
+
+## Three ways to connect the business number
+
+| Option | How it works | Good for | Watch out for |
+|---|---|---|---|
+| **Call forwarding** | The business's carrier forwards calls to your agent's number. | Pilots, and businesses that want to keep their phone provider. | The caller ID your agent sees can be the forwarding number, depending on the carrier. Test it. |
+| **New number** | The business publishes a new number that the agent answers. | New locations, campaigns, after-hours lines. | Customers must learn the new number. |
+| **Port the number** | The business moves its number to your carrier. | Full production setups. | Porting takes days. Plan the cutover. |
+
+Most AI receptionist products start with forwarding. Forwarding can be conditional: forward only when the front desk does not answer, when the line is busy, or after hours. That lets the business try the AI on overflow calls first.
+
+## The call flow
+
+A good AI receptionist call flow has five parts:
+
+1. **Answer fast.** Pick up within one or two rings. Greet with the business name.
+2. **Find the intent.** Booking, a question, a message, or a request for a person.
+3. **Act with tools.** Check the calendar, book the slot, look up hours, or create a ticket. Confirm details back to the caller.
+4. **Transfer when needed.** Hand the call to a person for anything the agent cannot handle, and for any caller who asks for a person. Send the person a summary.
+5. **Follow up by text.** Send a booking confirmation or a summary by SMS after the call, if the caller agreed.
+
+On the telecom side, an inbound call reaches your server as a webhook, and the audio flows to your agent over a WebSocket stream or SIP. See [how AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls).
+
+## Human transfer
+
+Transfer is where many AI receptionists fail. Build it in from day one.
+
+- **Warm transfer:** the agent calls the person first, gives a short summary, then connects the caller.
+- **Cold transfer:** the agent connects the caller directly. Faster, but the person starts with no context.
+- **Fallback:** if nobody answers, take a message and promise a callback with a time.
+
+Voice platforms such as Vapi and Retell include transfer tools. If you run your own stack, your telephony provider must support transferring or bridging a live call.
+
+## After-hours and overflow
+
+Most value comes from calls the business would miss. Set the routing rules with the business:
+
+- **Business hours:** front desk answers. AI takes calls that ring out or arrive while the line is busy.
+- **After hours:** AI answers every call, books appointments, and takes messages.
+- **Emergencies:** for clinics and home services, give the agent a clear rule to tell callers how to reach emergency help.
+
+## SMS follow-up
+
+A text after the call confirms what the agent did. To send it from the same number, the number needs SMS, and in the US the number needs [A2P 10DLC registration](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents). Ask the caller during the call if they want a text, and record the answer.
+
+## US rules for AI voice
+
+These facts are current as of October 8, 2026. This is not legal advice.
+
+- **Inbound calls:** the FCC's AI voice ruling covers outbound calls. An AI answering calls that people place to the business is not restricted by it.
+- **Outbound calls:** in February 2024 the FCC ruled (FCC 24-17) that AI-generated voices are "artificial" voices under the TCPA. Outbound calls with an AI voice need the called person's prior express consent, unless an exemption applies. Marketing calls need prior express written consent.
+- **Identification:** artificial-voice calls must state the business's identity at the start, and give a phone number during or after the call.
+- **AI disclosure at the start of a call:** the FCC has proposed it (FCC 24-84) but has not adopted it as a rule. State laws can add duties, so check the states you operate in. Disclosing anyway is good practice, and many callers prefer to know.
+- **Recording:** some states require every party's consent to record a call. If you record or transcribe, say so in the greeting.
+
+## Caller ID and answer rates
+
+For callbacks, people answer more often when the caller ID looks trustworthy.
+
+- **STIR/SHAKEN:** carriers sign outbound calls with an attestation level. "A" means the carrier knows the customer and that the customer may use the number. Numbers bought from the carrier you call through usually get A. Attestation alone does not prevent a "Spam Likely" label.
+- **CNAM:** register a caller name (up to 15 characters) for the number. Twilio and Telnyx both offer free registration. Many mobile carriers show it only if the subscriber turned the feature on.
+
+## How Numbers for Agents fits
+
+Numbers for Agents is building the phone layer for products like this: numbers, call webhooks, WebSocket audio and SIP into your voice stack, and SMS on the same number. It is in private beta. Join the waitlist below if you build AI receptionists.
+
+## FAQ
+
+### Can an AI receptionist use my existing business number?
+
+Yes. Forward calls from your current carrier to the AI receptionist's number, either all the time or only when the front desk does not answer. You can port the number later.
+
+### Do I need consent for an AI to answer phone calls?
+
+The FCC's 2024 AI voice ruling applies to outbound calls. An AI answering inbound calls is not restricted by it. Call recording laws still apply if you record.
+
+### Does an AI receptionist have to say it is an AI?
+
+There is no final federal rule that requires it as of October 2026. The FCC has proposed one, and state laws can add duties. Disclosing it is the safe default.
+
+### What happens when the AI cannot answer a question?
+
+It should transfer the call to a person, or take a message and promise a callback. Build this path before launch.
+
+---
+
+# Appointment reminder SMS agent
+
+> Build an AI agent that texts appointment reminders and handles confirm, cancel, and reschedule replies. Consent rules, healthcare limits, 10DLC, and STOP.
+>
+> Source: https://numberforagents.com/use-cases/appointment-reminder-sms-agent · Updated 2026-10-08 · Numbers for Agents
+
+A reminder text that only says "You have an appointment tomorrow at 3pm" is a one-way broadcast. An appointment reminder **agent** reads the reply. When the person writes "can we do Thursday instead?", the agent checks the calendar, offers times, and moves the booking. This page covers the message flow, the phone number setup, and the US rules for reminder texts.
+
+> **Short answer:** use one registered number per business for reminders and replies. Collect consent when the appointment is booked. Send the reminder 24 to 48 hours before, let the agent handle confirm, cancel, and reschedule replies, and handle STOP in code before the model sees the message. Healthcare reminders have a consent exemption with strict limits.
+
+## The message flow
+
+1. **Booking.** The person books and agrees to get texts about the appointment. Store the consent with a timestamp and the wording they saw.
+2. **Reminder.** Send 24 to 48 hours before. Include the business name, date, time, and how to reply. Example: "Bright Dental: reminder of your appointment Thu Oct 15 at 3:00pm. Reply C to confirm, R to reschedule. Reply STOP to opt out."
+3. **Reply handling.** The agent reads the reply. "C", "yes", and "see you then" all mean confirm. "R" or "can I come Friday" means reschedule.
+4. **Reschedule.** The agent checks the calendar, offers two or three slots, and books the chosen one. It sends a confirmation text with the new time.
+5. **Escalation.** Questions the agent cannot answer go to staff, with the thread attached.
+
+Accept short codes such as C and R, and also natural language. Short codes are reliable. Natural language is what people actually send.
+
+## Handle STOP before the model
+
+Opt-out handling must never depend on the model. Check every inbound message in code first:
+
+```js
+const OPT_OUT = ["stop", "quit", "end", "revoke", "opt out", "cancel", "unsubscribe"];
+
+function isOptOut(body) {
+  const text = body.trim().toLowerCase().replace(/[^a-z ]/g, "");
+  return OPT_OUT.includes(text);
+}
+```
+
+If the message is an opt-out, mark the number as opted out, send at most one confirmation text with no marketing, and stop. Under current FCC rules these seven words are always valid opt-outs, and other wording counts too if a reasonable person would read it as an opt-out. You must honor an opt-out within 10 business days. Your agent should stop at once.
+
+The word "cancel" is a problem for reminder agents, because a person may mean "cancel my appointment". Treat a bare "CANCEL" as an opt-out, as the rules require. Then let the agent ask in its confirmation whether the person also wants the appointment cancelled, or tell them how to cancel it.
+
+## Consent rules for reminder texts
+
+These facts are current as of October 8, 2026. This is not legal advice.
+
+- **General reminders** (salons, home services, car service, professional services) are informational. Automated texts to mobile numbers need the person's prior express consent. Written consent is required only for marketing. Collect consent at booking and keep the record.
+- **Do not mix in marketing.** A promotion inside a reminder makes it a marketing message, which needs prior express written consent. Keep promotions in a separate program.
+- **Opt-outs by category.** An FCC order adopted September 30, 2026 (FCC 26-67) will let a STOP reply to an informational message cover only that category, and let senders name one exclusive opt-out method such as replying STOP. It takes effect 30 days after publication in the Federal Register. Until then, the current rules apply.
+
+## Healthcare reminders: the exemption and its limits
+
+The FCC exempts some healthcare messages to mobile numbers from the consent requirement (47 CFR 64.1200(a)(9)(iv)). The limits are strict. The message must:
+
+- Go only to the mobile number the patient gave the provider.
+- Name the provider and give contact information.
+- Be for an allowed purpose, such as appointment confirmations and reminders, pre-operative instructions, lab results, or prescription notices.
+- Contain no marketing and no billing or debt content.
+- Be 160 characters or less for a text.
+- Be sent at most once a day and three times a week per patient.
+- Offer an easy opt-out, such as replying STOP, and honor it immediately.
+- Comply with HIPAA privacy rules.
+
+A two-way reschedule conversation goes beyond a single reminder. The safer path is to collect consent at booking anyway. Also keep health details out of texts. "Your appointment at Bright Dental" is fine. The reason for the visit is not.
+
+## Phone number setup
+
+- **One number per business.** Patients and customers should see the same sender every time. For platforms with many businesses, see [one number per customer](https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms).
+- **10DLC or toll-free.** A local number needs [A2P 10DLC registration](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents). Register as Customer Care, Account Notifications, or Mixed, with sample messages that show the reminder and a reschedule reply. A verified toll-free number is a faster alternative.
+- **Voice on the same number.** People often call back the number that texted them. Enable voice and forward calls to the front desk, or to an [AI receptionist](https://numberforagents.com/use-cases/ai-receptionist-phone-number).
+- **Timing.** Send reminders at sensible local times. Store each person's time zone.
+
+## How Numbers for Agents fits
+
+Numbers for Agents is building an API for agent phone lines: numbers, two-way SMS webhooks, and voice on the same number. It is in private beta. Join the waitlist below if you build reminder or scheduling agents.
+
+## FAQ
+
+### Do I need consent to send appointment reminder texts?
+
+Yes, in most cases. Automated texts to mobile numbers need prior express consent. Collect it at booking. Healthcare providers have a narrow exemption for reminders that meet strict conditions.
+
+### How far in advance should an appointment reminder be sent?
+
+24 to 48 hours before is common. Some businesses add a second reminder a few hours before. For healthcare reminders under the FCC exemption, the limit is one message per day and three per week.
+
+### Can an AI agent reschedule appointments by text?
+
+Yes. The agent reads the reply, checks the calendar through a tool, offers open slots, and books the one the person picks. Keep a human escalation path for anything unclear.
+
+### What should a reminder text include?
+
+The business name, the date and time, how to confirm or reschedule, and how to opt out. Keep health details and promotions out.
+
+---
+
+# One phone number per customer: provisioning for AI agent platforms
+
+> How AI agent platforms give every customer its own phone number through an API: data model, provisioning, webhook routing, tenant isolation, and 10DLC.
+>
+> Source: https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms · Updated 2026-10-08 · Numbers for Agents
+
+If you sell an AI agent product, each customer usually wants its own phone number. A dental office wants callers to see a local number. A real estate team wants one line per agent. Your platform must buy, configure, route, and release those numbers through code, not by hand in a carrier dashboard.
+
+This page explains the parts you need: the data model, the provisioning flow, webhook routing, tenant isolation, and the compliance work that follows each number.
+
+> **Short answer:** store a number record per tenant, provision through a carrier API when the customer finishes onboarding, point every number at one webhook endpoint, and route events by the number that was called or texted. Register SMS use cases per customer brand before you send business texts in the US.
+
+## Why one number per customer
+
+A shared number cannot tell callers apart from customers. When a person texts a shared line, your system must guess which business they meant. A dedicated number removes the guess. The `to` field on every inbound call or SMS identifies the tenant.
+
+Dedicated numbers also give each customer:
+
+- **A local identity.** A local area code tends to get more answers than an unknown or out-of-state number.
+- **Its own reputation.** If one customer sends poor traffic, carriers can filter that number without hurting other customers.
+- **Portability.** A customer can port the number out if they leave. That makes your product easier to buy.
+
+## The data model
+
+Keep the phone number as data, not configuration. A minimal table:
+
+| Column | Example | Why |
+|---|---|---|
+| `id` | `num_8f2a` | Your stable ID. Never key on the E.164 string. |
+| `tenant_id` | `acct_123` | The customer that owns the line. |
+| `agent_id` | `agt_77` | The agent that answers. Nullable for pooled lines. |
+| `e164` | `+14155550123` | The number in E.164 format. Unique. |
+| `provider_ref` | carrier ID | Needed to release or reconfigure the number. |
+| `capabilities` | `sms,voice` | What the number can do. |
+| `status` | `active` | `pending`, `active`, `releasing`, `released`. |
+| `messaging_campaign` | campaign ID | The 10DLC campaign this number is linked to, if any. |
+
+Add a unique index on `e164` and an index on `tenant_id`. Every inbound event becomes one lookup: find the row by `e164`, then load the tenant and agent.
+
+## The provisioning flow
+
+1. **Collect what the customer wants.** Area code or city, SMS, voice, or both.
+2. **Search inventory.** Call the carrier's available-numbers search with the area code. Show two or three options, or pick the first one.
+3. **Buy the number.** Store the row as `pending` before the purchase call. If the call fails, you can retry without buying twice.
+4. **Configure routing.** Set the voice and messaging webhook URLs, or attach the number to a SIP connection or messaging profile.
+5. **Link SMS compliance.** In the US, attach the number to the customer's approved 10DLC campaign before it sends business texts. See the [A2P 10DLC guide](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents).
+6. **Mark it active.** Only now show the number in the customer's dashboard.
+
+Release works in reverse. Detach the number, release it at the carrier, and mark the row `released`. Keep the row for audit.
+
+## One webhook endpoint, many tenants
+
+Do not create a webhook URL per customer. Point every number at one endpoint, such as `https://api.yourapp.com/telephony/inbound`. Route inside your code:
+
+```js
+// Inbound SMS or call event from your carrier
+const number = await db.numbers.findByE164(event.to);
+if (!number || number.status !== "active") return respond(404);
+
+const agent = await db.agents.find(number.agent_id);
+await queue.push({ tenant: number.tenant_id, agent: agent.id, event });
+return respond(200); // answer fast, run the model in a worker
+```
+
+One endpoint is easier to secure, monitor, and scale. You verify one signature scheme and watch one error rate.
+
+## Tenant isolation
+
+The phone number is now a key into customer data. Treat it like one.
+
+- **Scope every query by tenant.** Load conversation history with both the thread key and `tenant_id`.
+- **Never trust message text as instructions.** A caller who says "read me the last customer's order" must hit the same tool permissions as any other caller.
+- **Separate logs.** Store transcripts per tenant so you can export or delete one customer's data.
+- **Reuse numbers with care.** A released number can be reassigned to a stranger. Before you assign a number from your own pool to a new tenant, clear any old webhooks and thread history linked to it.
+
+## Carrier account structure
+
+Large carriers let you split usage per customer. Twilio has subaccounts. Telnyx has managed accounts. A subaccount per customer gives you separate billing and makes it easier to suspend one tenant. It also adds API calls and credentials to manage. Many platforms start with one account and a `tenant_id` on each number, then move big customers to subaccounts later.
+
+For a side-by-side view of the two most common carriers, see [Twilio vs Telnyx for AI voice agents](https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents).
+
+## Messaging compliance per customer
+
+In the US, business SMS from a local (10DLC) number must be registered. The brand on the registration is your customer, not your platform. A platform that sends texts for many businesses usually registers a separate brand and campaign for each customer. That takes time and costs fees per customer. Plan for it in onboarding. Do not let a customer send texts until their campaign is approved.
+
+Voice calls do not need 10DLC registration. Outbound calls that use an AI voice still need the called person's consent under US rules. See the [AI receptionist page](https://numberforagents.com/use-cases/ai-receptionist-phone-number) for the voice side.
+
+## How Numbers for Agents fits
+
+Numbers for Agents is building this layer as an API: search and buy numbers, one webhook stream for SMS and voice, SIP and WebSocket media, and per-number metadata for your tenant and agent IDs. The product is in private beta. Join the waitlist below if your platform provisions numbers for customers.
+
+## FAQ
+
+### Should each AI agent get its own phone number?
+
+Give each customer-facing identity its own number. If one business runs three agents that all answer the same front desk, one number with routing inside your code is enough. If each agent represents a different person or location, give each its own number.
+
+### How many phone numbers can a platform provision?
+
+Carriers set account limits and raise them on request. The practical limits are cost per number per month, SMS registration per customer, and how fast you can release unused numbers.
+
+### Can a customer keep their existing number?
+
+Yes, through porting. The customer moves the number from their current carrier to yours. Porting takes days, not minutes, so offer a new number for testing while the port runs.
+
+### Do I need a separate webhook URL for each customer?
+
+No. Use one endpoint and route by the `to` number on each event. This is simpler to secure and monitor.

@@ -25,12 +25,30 @@ Do not use Numbers for Agents for OTP or account verification bypass, for bulk u
 - [API docs](https://numberforagents.com/docs): waitlist endpoint, errors, rate limits, and the planned numbers API.
 - [OpenAPI spec](https://numberforagents.com/openapi.json): machine-readable contract for the public API.
 - [Home page in Markdown](https://numberforagents.com/): request with `Accept: text/markdown`.
+- [Full text of all guides](https://numberforagents.com/llms-full.txt): every guide, comparison, and use case in one Markdown file.
+- Every guide page has a Markdown twin: request it with `Accept: text/markdown`, or add `.md` to the URL.
 
 ## Guides
 
-- [How to give your AI agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number.html)
-- [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained.html)
-- [How AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html)
+- [How to give your AI agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number): A practical guide to provisioning a real phone line for an AI agent: API steps, webhooks, compliance basics, and how to connect your voice stack.
+- [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained): Learn how SMS APIs work for AI agents: sending, receiving, webhooks, threading, delivery receipts, and design patterns for conversational text agents.
+- [How AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls): Understand inbound call flow for AI agents: webhooks, SIP, WebSocket media, latency, handoff to humans, and how to bring your own voice stack.
+- [How to connect a phone number to Vapi](https://numberforagents.com/guides/connect-phone-number-to-vapi): Put a phone number on a Vapi assistant: free Vapi number, Twilio import, Telnyx import, BYO SIP trunk, and the POST /phone-number API call.
+- [How to connect a phone number to Retell AI](https://numberforagents.com/guides/connect-phone-number-to-retell-ai): Connect a phone number to a Retell AI agent: buy a Retell number, or bring your own Twilio or Telnyx number over SIP trunking. Plus SMS setup and costs.
+- [How to give Claude or any MCP agent a phone number](https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number): Give Claude Code, Claude Desktop, or any MCP agent a real phone number. Telephony MCP servers compared, with install commands and safety rules.
+- [A2P 10DLC registration for AI agents](https://numberforagents.com/guides/a2p-10dlc-registration-for-ai-agents): Register an AI agent's SMS number for A2P 10DLC: brand types, use cases, 2026 fees, approval time, toll-free vs 10DLC, and why campaigns get rejected.
+
+## Compare
+
+- [Best phone number APIs for AI agents (2026)](https://numberforagents.com/compare/best-phone-number-apis-for-ai-agents): Compare phone number APIs for AI agents: AgentPhone, Dial, AgentCall, Bland, Twilio, Telnyx. Prices, raw audio, SIP, MCP, and 10DLC, checked October 2026.
+- [Twilio vs Telnyx for AI voice agents (2026)](https://numberforagents.com/compare/twilio-vs-telnyx-for-ai-voice-agents): Twilio vs Telnyx for AI voice and SMS agents: number, voice, SMS, WebSocket media stream, SIP, and 10DLC prices side by side, plus which to pick.
+- [Vapi phone numbers: free number vs Twilio vs Telnyx vs SIP](https://numberforagents.com/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx): Free Vapi numbers are inbound only and US only. Compare Twilio import, Telnyx import, and BYO SIP trunk on Vapi for outbound calls, SMS, and cost.
+
+## Use cases
+
+- [AI receptionist phone number: how to set one up](https://numberforagents.com/use-cases/ai-receptionist-phone-number): Give an AI receptionist a phone number: forwarding vs new number vs porting, call flow, human transfer, after-hours, SMS follow-up, and US AI voice rules.
+- [Appointment reminder SMS agent](https://numberforagents.com/use-cases/appointment-reminder-sms-agent): Build an AI agent that texts appointment reminders and handles confirm, cancel, and reschedule replies. Consent rules, healthcare limits, 10DLC, and STOP.
+- [One phone number per customer: provisioning for AI agent platforms](https://numberforagents.com/use-cases/phone-numbers-for-ai-agent-platforms): How AI agent platforms give every customer its own phone number through an API: data model, provisioning, webhook routing, tenant isolation, and 10DLC.
 
 ## Company
 

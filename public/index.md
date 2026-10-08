@@ -71,11 +71,12 @@ Simple per-number pricing. Details at launch. Waitlist members lock in early pri
 
 `POST https://numberforagents.com/api/waitlist` with JSON `{"email": "you@company.com"}`. See https://numberforagents.com/docs.
 
-## Guides
+## Guides and comparisons
 
-- [How to give your AI agent a phone number](https://numberforagents.com/guides/how-to-give-your-ai-agent-a-phone-number.html)
-- [AI agent SMS API explained](https://numberforagents.com/guides/ai-agent-sms-api-explained.html)
-- [How AI voice agents receive phone calls](https://numberforagents.com/guides/how-ai-voice-agents-receive-phone-calls.html)
+- [All guides](https://numberforagents.com/guides/): setup guides for Vapi, Retell, MCP agents, SMS, inbound calls, and A2P 10DLC.
+- [Comparisons](https://numberforagents.com/compare/): phone number APIs for AI agents, Twilio vs Telnyx, and Vapi number options.
+- [Use cases](https://numberforagents.com/use-cases/): AI receptionists, appointment reminder agents, and one number per customer.
+- Full text of every guide for LLMs: https://numberforagents.com/llms-full.txt
 
 ## Company
 
