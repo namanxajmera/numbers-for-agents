@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Connect a Phone Number to Vapi (Step by Step)</title>
+  <meta name="description" content="Put a phone number on a Vapi assistant: free Vapi number, Twilio import, Telnyx import, BYO SIP trunk, and the POST /phone-number API call.">
+  <link rel="canonical" href="https://numberforagents.com/guides/connect-phone-number-to-vapi">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/guides/connect-phone-number-to-vapi.md">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="How to Connect a Phone Number to Vapi (Step by Step)">
+  <meta property="og:description" content="Put a phone number on a Vapi assistant: free Vapi number, Twilio import, Telnyx import, BYO SIP trunk, and the POST /phone-number API call.">
+  <meta property="og:url" content="https://numberforagents.com/guides/connect-phone-number-to-vapi">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How to connect a phone number to Vapi",
+  "description": "Put a phone number on a Vapi assistant: free Vapi number, Twilio import, Telnyx import, BYO SIP trunk, and the POST /phone-number API call.",
+  "datePublished": "2026-10-08",
+  "dateModified": "2026-10-08",
+  "mainEntityOfPage": "https://numberforagents.com/guides/connect-phone-number-to-vapi",
+  "image": "https://numberforagents.com/og.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://numberforagents.com/og.png"
+    }
+  }
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://numberforagents.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://numberforagents.com/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to connect a phone number to Vapi",
+      "item": "https://numberforagents.com/guides/connect-phone-number-to-vapi"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I give my Vapi assistant a phone number?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Open Phone Numbers in the Vapi dashboard, create a free Vapi number or import one from Twilio or Telnyx, then select your assistant under Inbound Settings."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use my existing business number with Vapi?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. If the number is on Twilio or Telnyx, import it. If it is on another carrier, connect it with a SIP trunk, or port it to Twilio or Telnyx first."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why can't my free Vapi number make outbound calls?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Free Vapi numbers are inbound only. Import a Twilio or Telnyx number to call out."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Vapi send SMS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Only through imported Twilio numbers, for US-to-US messages, after 10DLC approval."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/guides/">Guides</a></li><li aria-current="page">How to connect a phone number to Vapi</li></ol></nav>
+        <h1>How to connect a phone number to Vapi</h1>
+        <p class="guide-meta">Updated <time datetime="2026-10-08">October 8, 2026</time> · About 4 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <nav class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#before-you-start">Before you start</a></li><li><a href="#option-1-free-vapi-number-inbound-only">Option 1: Free Vapi number (inbound only)</a></li><li><a href="#option-2-import-a-twilio-number">Option 2: Import a Twilio number</a></li><li><a href="#option-3-import-a-telnyx-number">Option 3: Import a Telnyx number</a></li><li><a href="#option-4-bring-your-own-sip-trunk-api">Option 4: Bring your own SIP trunk (API)</a></li><li><a href="#import-a-number-with-the-api">Import a number with the API</a></li><li><a href="#make-an-outbound-call">Make an outbound call</a></li><li><a href="#troubleshooting">Troubleshooting</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+      <p>This guide shows how to put a phone number on a Vapi assistant so people can call it, and so it can call out. It covers the dashboard steps and the API call for each number type. Steps follow Vapi's docs as of October 8, 2026.</p>
+<p>If you have not picked a number type yet, read <a href="/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx">Vapi phone numbers: free vs Twilio vs Telnyx vs SIP</a> first. In short: free Vapi numbers are inbound only. Twilio imports support outbound calls and SMS. Telnyx imports support outbound calls.</p>
+<h2 id="before-you-start">Before you start</h2>
+<ul>
+<li>A Vapi account and an assistant you want to answer calls.</li>
+<li>For a Twilio import: a Twilio number, your Account SID, and your Auth Token.</li>
+<li>For a Telnyx import: a Telnyx number and a Telnyx API key.</li>
+<li>For a SIP trunk: your carrier's SIP server address, auth details, and a number (DID).</li>
+</ul>
+<h2 id="option-1-free-vapi-number-inbound-only">Option 1: Free Vapi number (inbound only)</h2>
+<ol>
+<li>In the Vapi dashboard, open <strong>Phone Numbers</strong>.</li>
+<li>Select <strong>Create Phone Number</strong>, then <strong>Free Vapi Number</strong>.</li>
+<li>Enter a US area code. If the dashboard asks for a payment method, add one first.</li>
+<li>Select <strong>Create</strong>. Activation can take a few minutes. Calls fail until it finishes.</li>
+<li>Open the number. Under <strong>Inbound Settings</strong>, choose your assistant and select <strong>Save</strong>.</li>
+</ol>
+<p>Call the number from your phone. Your assistant should answer.</p>
+<h2 id="option-2-import-a-twilio-number">Option 2: Import a Twilio number</h2>
+<ol>
+<li>In the Twilio Console, buy a number if you do not have one.</li>
+<li>In the Twilio Console dashboard, under <strong>Account Info</strong>, copy the <strong>Account SID</strong> and <strong>Auth Token</strong>.</li>
+<li>In Vapi, open <strong>Phone Numbers &gt; Create Phone Number &gt; Import Twilio</strong>.</li>
+<li>Enter the number with its country code, the Account SID, and the Auth Token. Turn on <strong>SMS Enabled</strong> if you want SMS. Select <strong>Import from Twilio</strong>.</li>
+<li>Open the number and assign your assistant for inbound calls.</li>
+</ol>
+<p>Vapi configures the Twilio webhooks for you. You do not need to set a voice URL in Twilio.</p>
+<h2 id="option-3-import-a-telnyx-number">Option 3: Import a Telnyx number</h2>
+<ol>
+<li>In Vapi, open <strong>Phone Numbers &gt; Create Phone Number &gt; Import Telnyx</strong>.</li>
+<li>Enter the number with its country code and your Telnyx API key. Select <strong>Import from Telnyx</strong>.</li>
+<li>Assign your assistant for inbound calls.</li>
+<li>For outbound calls, open the Telnyx Portal and go to <strong>Outbound Voice Profiles</strong>. Create or select a profile, set the allowed destinations, then select <strong>Add connections/apps to profile</strong>. Choose the Vapi connection and select <strong>Save</strong>.</li>
+</ol>
+<p>Skip step 4 and outbound calls will fail.</p>
+<h2 id="option-4-bring-your-own-sip-trunk-api">Option 4: Bring your own SIP trunk (API)</h2>
+<p>Use this for any carrier with SIP. First create a credential that describes your carrier's gateway:</p>
+<pre class="code-block"><code>curl -X POST https://api.vapi.ai/credential \
+  -H &quot;Authorization: Bearer $VAPI_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;provider&quot;: &quot;byo-sip-trunk&quot;,
+    &quot;name&quot;: &quot;my-carrier&quot;,
+    &quot;gateways&quot;: [{ &quot;ip&quot;: &quot;sip.your-carrier.com&quot;, &quot;inboundEnabled&quot;: false }],
+    &quot;outboundLeadingPlusEnabled&quot;: true,
+    &quot;outboundAuthenticationPlan&quot;: {
+      &quot;authUsername&quot;: &quot;YOUR_SIP_USERNAME&quot;,
+      &quot;authPassword&quot;: &quot;YOUR_SIP_PASSWORD&quot;
+    }
+  }'</code></pre>
+<p>Save the credential <code>id</code>. Then register the number:</p>
+<pre class="code-block"><code>curl -X POST https://api.vapi.ai/phone-number \
+  -H &quot;Authorization: Bearer $VAPI_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;provider&quot;: &quot;byo-phone-number&quot;,
+    &quot;name&quot;: &quot;Support line&quot;,
+    &quot;number&quot;: &quot;15551234567&quot;,
+    &quot;numberE164CheckEnabled&quot;: false,
+    &quot;credentialId&quot;: &quot;YOUR_CREDENTIAL_ID&quot;
+  }'</code></pre>
+<p>For inbound calls, configure your carrier to send calls to <code>sip:15551234567@YOUR_CREDENTIAL_ID.sip.vapi.ai</code>. Allow Vapi's US signaling IPs (<code>44.229.228.186/32</code> and <code>44.238.177.138/32</code>) and UDP ports 40000 to 60000 for media. See Vapi's <a href="https://docs.vapi.ai/advanced/sip/sip-trunk" rel="noopener">SIP trunk docs</a> for carrier-specific guides.</p>
+<h2 id="import-a-number-with-the-api">Import a number with the API</h2>
+<p>The dashboard steps above have an API equivalent: <code>POST https://api.vapi.ai/phone-number</code>. The body changes with <code>provider</code>. A Twilio import:</p>
+<pre class="code-block"><code>curl -X POST https://api.vapi.ai/phone-number \
+  -H &quot;Authorization: Bearer $VAPI_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;provider&quot;: &quot;twilio&quot;,
+    &quot;number&quot;: &quot;+14155550123&quot;,
+    &quot;twilioAccountSid&quot;: &quot;ACxxxxxxxx&quot;,
+    &quot;twilioAuthToken&quot;: &quot;YOUR_AUTH_TOKEN&quot;,
+    &quot;assistantId&quot;: &quot;YOUR_ASSISTANT_ID&quot;,
+    &quot;smsEnabled&quot;: true
+  }'</code></pre>
+<p>For Telnyx, use <code>&quot;provider&quot;: &quot;telnyx&quot;</code> with <code>credentialId</code> (a Telnyx credential you add in the Vapi dashboard) and <code>number</code>.</p>
+<p>If you leave <code>assistantId</code> unset, Vapi sends an <code>assistant-request</code> to your server URL on each inbound call. Your server then picks the assistant per call. This is how platforms route one Vapi organization to many customers.</p>
+<h2 id="make-an-outbound-call">Make an outbound call</h2>
+<p>Outbound calls need a Twilio, Telnyx, or SIP number. Free Vapi numbers cannot call out.</p>
+<pre class="code-block"><code>curl -X POST https://api.vapi.ai/call/phone \
+  -H &quot;Authorization: Bearer $VAPI_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;assistantId&quot;: &quot;YOUR_ASSISTANT_ID&quot;,
+    &quot;phoneNumberId&quot;: &quot;YOUR_PHONE_NUMBER_ID&quot;,
+    &quot;customer&quot;: { &quot;number&quot;: &quot;+14155559876&quot; }
+  }'</code></pre>
+<p>Calling people with an AI voice in the US requires their prior consent. Read the <a href="/use-cases/ai-receptionist-phone-number">AI receptionist page</a> for the rules that apply to voice agents.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul>
+<li><strong>Calls to a new free number fail.</strong> Activation can take a few minutes. Wait and retry.</li>
+<li><strong>Outbound calls on Telnyx fail.</strong> Add the Vapi connection to a Telnyx Outbound Voice Profile.</li>
+<li><strong>Garbled audio on Telnyx international calls.</strong> Telnyx can send A-law audio where Vapi expects µ-law. Switch to a SIP trunk.</li>
+<li><strong>SMS arrives but the assistant does not reply.</strong> Vapi needs a saved payment method, and the number must be 10DLC-approved.</li>
+<li><strong>Calls are rejected under load.</strong> Concurrency is shared across inbound and outbound calls in your organization. Buy more lines or spread calls out.</li>
+</ul>
+<h2 id="faq">FAQ</h2>
+<h3 id="how-do-i-give-my-vapi-assistant-a-phone-number">How do I give my Vapi assistant a phone number?</h3>
+<p>Open <strong>Phone Numbers</strong> in the Vapi dashboard, create a free Vapi number or import one from Twilio or Telnyx, then select your assistant under <strong>Inbound Settings</strong>.</p>
+<h3 id="can-i-use-my-existing-business-number-with-vapi">Can I use my existing business number with Vapi?</h3>
+<p>Yes. If the number is on Twilio or Telnyx, import it. If it is on another carrier, connect it with a SIP trunk, or port it to Twilio or Telnyx first.</p>
+<h3 id="why-can-t-my-free-vapi-number-make-outbound-calls">Why can't my free Vapi number make outbound calls?</h3>
+<p>Free Vapi numbers are inbound only. Import a Twilio or Telnyx number to call out.</p>
+<h3 id="does-vapi-send-sms">Does Vapi send SMS?</h3>
+<p>Only through imported Twilio numbers, for US-to-US messages, after 10DLC approval.</p>
+      <section class="guide-cta" aria-labelledby="cta-heading">
+        <h2 id="cta-heading">Get a phone number for your agent</h2>
+        <p>Numbers for Agents is an API for agent phone lines: numbers, SMS, call webhooks, SIP, and WebSocket media. It is in private beta. Join the waitlist for early access and pricing.</p>
+        <form class="waitlist-form" data-waitlist-form data-source="connect-phone-number-to-vapi" action="/api/waitlist" method="post">
+          <label for="cta-email">Work email</label>
+          <div class="waitlist-row">
+            <input type="email" id="cta-email" name="email" required autocomplete="email" placeholder="you@company.com" aria-describedby="cta-message">
+            <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          </div>
+          <div class="hp-field" aria-hidden="true">
+            <label for="cta-company">Company</label>
+            <input type="text" id="cta-company" name="company" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message" id="cta-message" data-form-message role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="guide-related">
+        <h2>Related</h2>
+        <ul>
+          <li><a href="/compare/vapi-phone-numbers-free-vs-twilio-vs-telnyx">Vapi phone numbers: free number vs Twilio vs Telnyx vs SIP</a></li>
+          <li><a href="/guides/connect-phone-number-to-retell-ai">How to connect a phone number to Retell AI</a></li>
+          <li><a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration for AI agents</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/main.js" defer></script>
+</body>
+</html>

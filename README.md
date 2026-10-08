@@ -51,7 +51,8 @@ Checked with `npx is-agentic numberforagents.com`.
 |------|-------|
 | Agent guidance ("when to use") | `public/llms.txt` |
 | OpenAPI spec for `/api/waitlist` | `public/openapi.json` |
-| Markdown pages (`Accept: text/markdown`) | `public/index.md`, `public/docs.md`, served by `functions/_lib/markdown.js` |
+| Markdown pages (`Accept: text/markdown`) | `public/index.md`, `public/docs.md`, and every built content page's `.md` twin, served by `functions/_lib/markdown.js` |
+| Full text of all content for LLMs | `public/llms-full.txt` (generated) |
 | JSON errors for every `/api/*` path | `functions/_lib/http.js`, `functions/api/[[path]].js` |
 | Rate limit headers (`RateLimit`, `RateLimit-Policy`) | `functions/api/waitlist.js` |
 
@@ -185,11 +186,40 @@ GROUP BY ua ORDER BY hits DESC LIMIT 30;
 
 - `POST /api/waitlist` — JSON `{ "email", "source" }`, honeypot field `company`
 
+## Content (guides, comparisons, use cases)
+
+**Edit Markdown in `content/`, then run `node scripts/build-content.mjs`. Commit both `content/` and the generated files in `public/`.** The build has no dependencies and CI does not run it.
+
+| Source | Published at |
+|--------|--------------|
+| `content/guides/<slug>.md` | `/guides/<slug>` (+ `/guides/<slug>.md` twin) |
+| `content/compare/<slug>.md` | `/compare/<slug>` |
+| `content/use-cases/<slug>.md` | `/use-cases/<slug>` |
+
+Each build writes the page HTML (TechArticle, BreadcrumbList, and FAQPage JSON-LD, waitlist form), the Markdown twin, each section hub (`/guides/` etc.), `sitemap.xml`, the content list in `llms.txt` (between `## Guides` and `## Company`), and `llms-full.txt`.
+
+Frontmatter: `title`, `description`, `h1`, `published`, `updated` (required), `order`, `related` (comma-separated paths). A `## FAQ` section with `### Question` headings becomes FAQPage schema. Supported Markdown: `##`/`###`, paragraphs, `-`/`1.` lists, fences, tables, `>` callouts, bold, italic, code, links.
+
+Rules for content:
+
+- Every price or vendor fact needs a source link and the date it was checked. Bump `updated` when you re-check.
+- The product is in private beta. Say so. Never describe planned features as live or invent pricing.
+- Link with clean URLs (`/guides/slug`, no `.html`). Pages redirects `.html` with a 308.
+
+Hand-written pages (`index.html`, `docs.html`, `about.html`, ...) are not built. Their sitemap `lastmod` comes from their last git commit.
+
+## Search engines
+
+- **Google:** Search Console reads `sitemap.xml` (see above).
+- **Bing, Yandex, Seznam, Naver:** after a deploy that adds or changes pages, run `bash scripts/indexnow.sh`. It submits every sitemap URL through IndexNow. The key file is `public/59105cf6bdc0e12bcd156504f1e842fd.txt`. ChatGPT search and Copilot use Bing's index, so this matters for AI citations too.
+
 ## Layout
 
 ```
-public/            Everything in here is published: index.html, guides/, styles.css,
-                   main.js, analytics.js, _headers, _routes.json, robots.txt, sitemap.xml
+content/           Markdown sources for guides/, compare/, use-cases/ (built into public/)
+public/            Everything in here is published: index.html, guides/, compare/, use-cases/,
+                   styles.css, main.js, analytics.js, _headers, _routes.json, robots.txt,
+                   sitemap.xml, llms.txt, llms-full.txt
 functions/         Pages Functions (server code, never served as files)
   _middleware.js   logs bot page views
   _lib/            shared code: bot classifier, analytics writes

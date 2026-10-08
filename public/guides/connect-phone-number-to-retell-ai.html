@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How to Connect a Phone Number to Retell AI</title>
+  <meta name="description" content="Connect a phone number to a Retell AI agent: buy a Retell number, or bring your own Twilio or Telnyx number over SIP trunking. Plus SMS setup and costs.">
+  <link rel="canonical" href="https://numberforagents.com/guides/connect-phone-number-to-retell-ai">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/guides/connect-phone-number-to-retell-ai.md">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="How to Connect a Phone Number to Retell AI">
+  <meta property="og:description" content="Connect a phone number to a Retell AI agent: buy a Retell number, or bring your own Twilio or Telnyx number over SIP trunking. Plus SMS setup and costs.">
+  <meta property="og:url" content="https://numberforagents.com/guides/connect-phone-number-to-retell-ai">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How to connect a phone number to Retell AI",
+  "description": "Connect a phone number to a Retell AI agent: buy a Retell number, or bring your own Twilio or Telnyx number over SIP trunking. Plus SMS setup and costs.",
+  "datePublished": "2026-10-08",
+  "dateModified": "2026-10-08",
+  "mainEntityOfPage": "https://numberforagents.com/guides/connect-phone-number-to-retell-ai",
+  "image": "https://numberforagents.com/og.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://numberforagents.com/og.png"
+    }
+  }
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://numberforagents.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://numberforagents.com/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to connect a phone number to Retell AI",
+      "item": "https://numberforagents.com/guides/connect-phone-number-to-retell-ai"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can I use my own phone number with Retell AI?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Connect it over SIP trunking from Twilio, Telnyx, Vonage, or a contact-center platform. If your carrier does not support SIP trunking, port the number to one that does."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does a Retell phone number cost?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "$2 per month for a US or Canada local number, and $5 per month for a US toll-free number. Numbers you connect over SIP have no Retell number fee."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Retell support SMS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, in the US, on Retell Twilio numbers or your own A2P-registered numbers. Telnyx numbers are not supported for SMS yet. Retell adds $20 per month per number plus $0.01 per message."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does my Retell number not answer calls?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Check that an inbound agent is bound to the number. Without a bound agent, the number does not take calls."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/guides/">Guides</a></li><li aria-current="page">How to connect a phone number to Retell AI</li></ol></nav>
+        <h1>How to connect a phone number to Retell AI</h1>
+        <p class="guide-meta">Updated <time datetime="2026-10-08">October 8, 2026</time> · About 5 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <nav class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#option-1-buy-a-number-in-retell">Option 1: Buy a number in Retell</a></li><li><a href="#option-2-connect-your-own-number-with-sip-trunking">Option 2: Connect your own number with SIP trunking</a></li><li><a href="#bind-agents-and-route-calls">Bind agents and route calls</a></li><li><a href="#add-sms">Add SMS</a></li><li><a href="#what-it-costs">What it costs</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+      <p>Retell gives you two ways to put a phone number on an agent. You can buy a number inside Retell, or you can connect a number you already own through SIP trunking. This guide covers both, plus SMS. Steps follow Retell's docs as of October 8, 2026.</p>
+<aside class="callout"><p><strong>Short answer:</strong> buy a Retell number ($2 per month, US and Canada) to start fast. Connect your own Twilio or Telnyx number over SIP to keep control of the number and pay no Retell telephony fee. In both cases, a number only takes calls after you bind an agent to it.</p></aside>
+<h2 id="option-1-buy-a-number-in-retell">Option 1: Buy a number in Retell</h2>
+<ol>
+<li>In the Retell dashboard, open <strong>Phone Numbers</strong> and click <strong>+</strong>.</li>
+<li>Optionally choose an area code.</li>
+<li>Bind an inbound agent, an outbound agent, or both.</li>
+</ol>
+<p>A payment method is required. Retell sells US and Canada numbers only. Local numbers cost $2 per month. US toll-free numbers cost $5 per month. You can also buy through the API with <code>POST https://api.retellai.com/create-phone-number</code> and an <code>area_code</code>.</p>
+<h2 id="option-2-connect-your-own-number-with-sip-trunking">Option 2: Connect your own number with SIP trunking</h2>
+<p>Retell calls this &quot;custom telephony&quot;. Your carrier keeps the number. Calls flow between your carrier and Retell over SIP. Retell does not charge for the telephony on these calls. Your carrier bills the minutes.</p>
+<p>Key facts for any carrier:</p>
+<ul>
+<li>Retell's SIP server is <code>sip:sip.retellai.com</code>. Point inbound (origination) calls there.</li>
+<li>Retell has no termination URI of its own. You give Retell your carrier's termination URI for outbound calls.</li>
+<li>Supported transports: TCP (recommended), UDP, TLS. Codecs: PCMU, PCMA, G.722.</li>
+<li>The old endpoint <code>sip:5t4n6j0wnrl.sip.livekit.cloud</code> was retired on September 30, 2026. Update any trunk that still uses it.</li>
+</ul>
+<h3 id="twilio-elastic-sip-to-retell">Twilio Elastic SIP to Retell</h3>
+<ol>
+<li>In Twilio, create an <strong>Elastic SIP Trunk</strong>.</li>
+<li>Under <strong>Termination</strong>, note the termination SIP URI. Pick a localized URI near your region. Allow Retell's signaling IPs (<code>18.98.16.120/30</code>) or create a credential list with a username and password.</li>
+<li>Under <strong>Origination</strong>, add the URI <code>sip:sip.retellai.com</code>.</li>
+<li>Buy a number in Twilio, or move an existing number onto the trunk.</li>
+<li>In Retell, open <strong>Phone Numbers</strong>, click <strong>+</strong>, then <strong>Connect to your number via SIP trunking</strong>. Enter the termination URI and the credentials if you made them. Click <strong>Test SIP Connection</strong>, then <strong>Save</strong>.</li>
+<li>Bind an agent to the number.</li>
+<li>For international calls, enable the countries under Twilio's <strong>Voice Geographic Permissions &gt; Elastic SIP Trunking</strong>.</li>
+</ol>
+<h3 id="telnyx-to-retell">Telnyx to Retell</h3>
+<ol>
+<li>In Telnyx, create a SIP trunk of type <strong>FQDN</strong>. Add <code>sip.retellai.com</code> with DNS record type <strong>SRV</strong>.</li>
+<li>Set outbound authentication to <strong>credentials</strong> (username and password).</li>
+<li>In inbound settings, set the number format to <code>+E.164</code>, enable codecs G722, G711U, and G711A, and choose TCP.</li>
+<li>Create an <strong>Outbound Voice Profile</strong> and select it in the trunk's outbound settings.</li>
+<li>Move your numbers onto the trunk.</li>
+<li>In Retell, import the number with Telnyx's SIP address (for example <code>sip.telnyx.com</code>) as the termination URI. Add the username and password, and the header <code>X-Telnyx-Username: &lt;username&gt;</code> that Telnyx requires on outbound calls.</li>
+</ol>
+<h3 id="import-with-the-api">Import with the API</h3>
+<pre class="code-block"><code>curl -X POST https://api.retellai.com/import-phone-number \
+  -H &quot;Authorization: Bearer $RETELL_API_KEY&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{
+    &quot;phone_number&quot;: &quot;+14155550123&quot;,
+    &quot;termination_uri&quot;: &quot;your-trunk.pstn.twilio.com&quot;,
+    &quot;sip_trunk_auth_username&quot;: &quot;YOUR_SIP_USERNAME&quot;,
+    &quot;sip_trunk_auth_password&quot;: &quot;YOUR_SIP_PASSWORD&quot;,
+    &quot;nickname&quot;: &quot;Support line&quot;
+  }'</code></pre>
+<p>Then bind agents in the dashboard or through the update phone number API. Retell also has guides for Vonage, Five9, Genesys, Avaya, and Amazon Connect.</p>
+<h2 id="bind-agents-and-route-calls">Bind agents and route calls</h2>
+<p>A Retell number &quot;can receive and make calls only after you bind an agent to it&quot;. You can bind different agents for inbound and outbound calls. Leave one direction unset to disable it.</p>
+<p>To pick the agent per call, set an <code>inbound_webhook_url</code> on the number. Retell calls your server for each inbound call, and you return the agent and any dynamic variables, or reject the call. Platforms that serve many customers use this to route by caller or by number.</p>
+<p>When all concurrent lines are busy, Retell holds the call for about 40 seconds. Then it transfers to the number's fallback number, or ends the call.</p>
+<h2 id="add-sms">Add SMS</h2>
+<p>SMS on Retell works on Retell-bought Twilio numbers, and on your own numbers that passed A2P 10DLC registration. Telnyx numbers do not support SMS on Retell yet. SMS is US only and excludes toll-free numbers.</p>
+<p>For a Retell-bought number, Retell runs the registration with you:</p>
+<ol>
+<li>Create a business profile (free).</li>
+<li>Register a brand: $4 one time for low volume (under 6,000 segments per day) or $45 for standard.</li>
+<li>Register a campaign: $15 one time, non-refundable.</li>
+<li>After approval, pay $20 per month per number plus $0.01 per SMS.</li>
+</ol>
+<p>Approval takes about 2 to 3 weeks. Read the <a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC guide</a> so your campaign passes the first time.</p>
+<h2 id="what-it-costs">What it costs</h2>
+<p>Retell's voice infrastructure fee is $0.055 per minute. LLM and voice costs come on top. Retell's own example totals $0.11 per minute. Retell-bought US numbers on Twilio carry a telephony rate of $0.015 per minute. SIP trunking has no Retell telephony charge, so you pay your carrier instead. Pay-as-you-go includes 20 concurrent calls. Extra lines cost $8 per month. <a href="https://www.retellai.com/pricing" rel="noopener">Retell pricing</a>.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="can-i-use-my-own-phone-number-with-retell-ai">Can I use my own phone number with Retell AI?</h3>
+<p>Yes. Connect it over SIP trunking from Twilio, Telnyx, Vonage, or a contact-center platform. If your carrier does not support SIP trunking, port the number to one that does.</p>
+<h3 id="how-much-does-a-retell-phone-number-cost">How much does a Retell phone number cost?</h3>
+<p>$2 per month for a US or Canada local number, and $5 per month for a US toll-free number. Numbers you connect over SIP have no Retell number fee.</p>
+<h3 id="does-retell-support-sms">Does Retell support SMS?</h3>
+<p>Yes, in the US, on Retell Twilio numbers or your own A2P-registered numbers. Telnyx numbers are not supported for SMS yet. Retell adds $20 per month per number plus $0.01 per message.</p>
+<h3 id="why-does-my-retell-number-not-answer-calls">Why does my Retell number not answer calls?</h3>
+<p>Check that an inbound agent is bound to the number. Without a bound agent, the number does not take calls.</p>
+      <section class="guide-cta" aria-labelledby="cta-heading">
+        <h2 id="cta-heading">Get a phone number for your agent</h2>
+        <p>Numbers for Agents is an API for agent phone lines: numbers, SMS, call webhooks, SIP, and WebSocket media. It is in private beta. Join the waitlist for early access and pricing.</p>
+        <form class="waitlist-form" data-waitlist-form data-source="connect-phone-number-to-retell-ai" action="/api/waitlist" method="post">
+          <label for="cta-email">Work email</label>
+          <div class="waitlist-row">
+            <input type="email" id="cta-email" name="email" required autocomplete="email" placeholder="you@company.com" aria-describedby="cta-message">
+            <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          </div>
+          <div class="hp-field" aria-hidden="true">
+            <label for="cta-company">Company</label>
+            <input type="text" id="cta-company" name="company" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message" id="cta-message" data-form-message role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="guide-related">
+        <h2>Related</h2>
+        <ul>
+          <li><a href="/guides/connect-phone-number-to-vapi">How to connect a phone number to Vapi</a></li>
+          <li><a href="/compare/twilio-vs-telnyx-for-ai-voice-agents">Twilio vs Telnyx for AI voice agents (2026)</a></li>
+          <li><a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration for AI agents</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/main.js" defer></script>
+</body>
+</html>

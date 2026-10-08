@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Give Claude or Any MCP Agent a Phone Number</title>
+  <meta name="description" content="Give Claude Code, Claude Desktop, or any MCP agent a real phone number. Telephony MCP servers compared, with install commands and safety rules.">
+  <link rel="canonical" href="https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number.md">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="Give Claude or Any MCP Agent a Phone Number">
+  <meta property="og:description" content="Give Claude Code, Claude Desktop, or any MCP agent a real phone number. Telephony MCP servers compared, with install commands and safety rules.">
+  <meta property="og:url" content="https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "How to give Claude or any MCP agent a phone number",
+  "description": "Give Claude Code, Claude Desktop, or any MCP agent a real phone number. Telephony MCP servers compared, with install commands and safety rules.",
+  "datePublished": "2026-10-08",
+  "dateModified": "2026-10-08",
+  "mainEntityOfPage": "https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number",
+  "image": "https://numberforagents.com/og.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://numberforagents.com/og.png"
+    }
+  }
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://numberforagents.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guides",
+      "item": "https://numberforagents.com/guides/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "How to give Claude or any MCP agent a phone number",
+      "item": "https://numberforagents.com/guides/give-claude-mcp-agent-a-phone-number"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Can Claude make phone calls?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, through an MCP server. Install a telephony MCP server such as AgentPhone, Bland, Retell, or Vapi in Claude Code or Claude Desktop. Claude can then place calls through that provider's tools. The provider runs the voice on the call."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can Claude send a text message?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. With AgentPhone's MCP server, Claude can send SMS with send_message. With Telnyx's remote MCP server, Claude can call the messaging API. You need a number on that account first."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Twilio have an MCP server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, but the official one only searches Twilio's docs. The @twilio-alpha/mcp package can call the Twilio API, and Twilio labels it a proof of concept."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe to give an AI agent a phone number?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "It is safe with limits: a scoped API key, a spend cap, approval for outbound messages and calls, and consent from the people the agent contacts."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/guides/">Guides</a></li><li aria-current="page">How to give Claude or any MCP agent a phone number</li></ol></nav>
+        <h1>How to give Claude or any MCP agent a phone number</h1>
+        <p class="guide-meta">Updated <time datetime="2026-10-08">October 8, 2026</time> · About 5 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <nav class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#what-each-server-can-do">What each server can do</a></li><li><a href="#agentphone">AgentPhone</a></li><li><a href="#telnyx">Telnyx</a></li><li><a href="#retell">Retell</a></li><li><a href="#bland">Bland</a></li><li><a href="#vapi">Vapi</a></li><li><a href="#twilio">Twilio</a></li><li><a href="#safety-rules-for-agents-with-a-phone">Safety rules for agents with a phone</a></li><li><a href="#where-numbers-for-agents-fits">Where Numbers for Agents fits</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+      <p>An MCP server turns a telephony API into tools an AI agent can call. With the right server installed, Claude Code or Claude Desktop can buy a number, send a text, or place a call from a chat. This guide compares the telephony MCP servers available today and shows how to install each one. Facts come from each vendor's docs, checked on October 8, 2026.</p>
+<aside class="callout"><p><strong>Short answer:</strong> for an agent that buys its own number and sends SMS, use AgentPhone's MCP server or Telnyx's remote MCP server. For voice calls through an existing voice platform, use the Bland, Retell, or Vapi MCP server. Twilio's official MCP server only searches Twilio's docs today.</p></aside>
+<h2 id="what-each-server-can-do">What each server can do</h2>
+<div class="table-wrap"><table>
+<thead><tr><th scope="col">MCP server</th><th scope="col">Buy a number</th><th scope="col">Send SMS</th><th scope="col">Place a call</th><th scope="col">Auth</th></tr></thead>
+<tbody>
+<tr><td>AgentPhone</td><td>Yes (<code>buy_number</code>)</td><td>Yes (<code>send_message</code>)</td><td>Yes (<code>make_call</code>)</td><td>OAuth or API key</td></tr>
+<tr><td>Telnyx remote</td><td>Yes, through <code>invoke_api_endpoint</code></td><td>Yes, same tool</td><td>Yes, same tool</td><td>Telnyx API key</td></tr>
+<tr><td>Retell</td><td>Import and provision, through <code>invoke_api_endpoint</code></td><td>No</td><td>Yes</td><td>Retell API key</td></tr>
+<tr><td>Bland</td><td>Through REST passthrough tools</td><td>No dedicated tool</td><td>Yes (<code>create_call</code>)</td><td>API key or OAuth</td></tr>
+<tr><td>Vapi</td><td>No (list only)</td><td>No</td><td>Yes (<code>create_call</code>)</td><td>Vapi API key</td></tr>
+<tr><td>Twilio official</td><td>No</td><td>No</td><td>No (docs search only)</td><td>None</td></tr>
+</tbody>
+</table></div>
+<p><strong>Generic tools.</strong> Telnyx and Retell expose three tools: list endpoints, get an endpoint's schema, and invoke an endpoint. The agent can reach the whole API this way, but it must find the right endpoint first. Dedicated tools such as AgentPhone's <code>send_message</code> are easier for a model to use correctly.</p>
+<h2 id="agentphone">AgentPhone</h2>
+<p>AgentPhone's server has 28 tools, including <code>buy_number</code>, <code>send_message</code> (SMS or iMessage), <code>get_messages</code>, <code>make_call</code>, <code>attach_number</code>, and <code>set_webhook</code>. Numbers are US and Canada.</p>
+<p>Claude Code:</p>
+<pre class="code-block"><code>claude mcp add --transport http agentphone https://mcp.agentphone.ai/mcp</code></pre>
+<p>This signs in through your browser. To use an API key instead, add <code>--header &quot;Authorization: Bearer YOUR_API_KEY&quot;</code>. In Claude Desktop, open <strong>Settings &gt; Connectors &gt; Add custom connector</strong> and paste the URL. Numbers cost $3 per month and SMS costs $0.02 per segment. <a href="https://docs.agentphone.ai/mcp" rel="noopener">Docs</a>.</p>
+<h2 id="telnyx">Telnyx</h2>
+<p>Telnyx's remote server at <code>https://api.telnyx.com/v2/mcp</code> gives the agent the full Telnyx API: search numbers, buy them, send messages, and control calls. <code>invoke_api_endpoint</code> can change state and spend money, so scope your API key with care.</p>
+<p>In Claude Desktop, add it as a custom connector under <strong>Settings &gt; Connectors</strong>, then grant access in the Telnyx Portal. Telnyx also ships a local server:</p>
+<pre class="code-block"><code>claude mcp add telnyx_mcp_api --env TELNYX_API_KEY=&quot;YOUR_KEY&quot; -- npx -y telnyx-mcp</code></pre>
+<p>The local package runs in &quot;code mode&quot;: a docs search tool plus a tool that runs Telnyx SDK code in a sandbox. <a href="https://developers.telnyx.com/docs/development/mcp/remote-mcp" rel="noopener">Docs</a>.</p>
+<h2 id="retell">Retell</h2>
+<pre class="code-block"><code>claude mcp add --transport http retell https://mcp.retellai.com \
+  --header &quot;Authorization: Bearer $RETELL_API_KEY&quot;</code></pre>
+<p>The server can import, provision, and list phone numbers and create calls. Use it when your voice agent already runs on Retell. <a href="https://docs.retellai.com/get-started/mcp-server" rel="noopener">Docs</a>.</p>
+<h2 id="bland">Bland</h2>
+<pre class="code-block"><code>claude mcp add --transport http bland https://api.bland.ai/v1/mcp \
+  --header &quot;Authorization: Bearer $BLAND_API_KEY&quot;</code></pre>
+<p>To sign in without a key, add the server without the header, then run <code>claude mcp login bland</code>. Bland marks <code>create_call</code> as destructive. It also has <code>wait_for_call</code> and <code>get_call_log</code>, so an agent can place a call and read the result. <a href="https://docs.bland.ai/integrations/mcp/clients/claude-code" rel="noopener">Docs</a>.</p>
+<p>Bland also sells an Agent Phone Plan that an agent can sign up for itself: one US number with calls and texts for $29.99 per month, capped at 50 calls and 100 texts per day.</p>
+<h2 id="vapi">Vapi</h2>
+<p>Vapi's hosted server is at <code>https://mcp.vapi.ai/mcp</code> with a Bearer Vapi API key. It can create assistants and calls and list phone numbers. It cannot buy or import numbers and has no SMS tool. Get a number in the dashboard first. See <a href="/guides/connect-phone-number-to-vapi">connect a phone number to Vapi</a>. <a href="https://docs.vapi.ai/sdk/mcp-server" rel="noopener">Docs</a>.</p>
+<h2 id="twilio">Twilio</h2>
+<p>Twilio's official MCP server (public beta) is read-only. It searches Twilio's documentation and does not execute API calls. It cannot send SMS, make calls, or buy numbers.</p>
+<pre class="code-block"><code>claude mcp add --transport http twilio-docs https://mcp.twilio.com/docs</code></pre>
+<p>Twilio's older <code>@twilio-alpha/mcp</code> package exposes the Twilio API as tools, but Twilio calls it a proof of concept. Limit it to the services you need with <code>--services</code> or <code>--tags</code>. <a href="https://www.twilio.com/docs/ai/mcp" rel="noopener">Docs</a>.</p>
+<h2 id="safety-rules-for-agents-with-a-phone">Safety rules for agents with a phone</h2>
+<p>A phone number lets an agent reach real people and spend real money. Set limits before you hand it over.</p>
+<ul>
+<li><strong>Use a scoped key.</strong> Give the agent a key for a sub-account or a project with a spend cap, not your main account key.</li>
+<li><strong>Require approval for outbound actions.</strong> Claude Code asks before each tool call by default. Keep that on for <code>send_message</code>, <code>make_call</code>, and <code>buy_number</code>.</li>
+<li><strong>Respect consent.</strong> In the US, texting or calling people with an automated system or AI voice needs their consent. Business texts from local numbers need <a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration</a>.</li>
+<li><strong>Never use agent numbers for verification bypass.</strong> Using a number to receive one-time codes for accounts you do not own breaks most terms of service.</li>
+<li><strong>Log everything.</strong> Keep a record of each message and call the agent made.</li>
+</ul>
+<h2 id="where-numbers-for-agents-fits">Where Numbers for Agents fits</h2>
+<p>Numbers for Agents is building a number API designed for agents: numbers, SMS, signed webhooks, SIP, and raw WebSocket audio for teams that run their own voice stack. It is in private beta. Join the waitlist below to get access.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="can-claude-make-phone-calls">Can Claude make phone calls?</h3>
+<p>Yes, through an MCP server. Install a telephony MCP server such as AgentPhone, Bland, Retell, or Vapi in Claude Code or Claude Desktop. Claude can then place calls through that provider's tools. The provider runs the voice on the call.</p>
+<h3 id="can-claude-send-a-text-message">Can Claude send a text message?</h3>
+<p>Yes. With AgentPhone's MCP server, Claude can send SMS with <code>send_message</code>. With Telnyx's remote MCP server, Claude can call the messaging API. You need a number on that account first.</p>
+<h3 id="does-twilio-have-an-mcp-server">Does Twilio have an MCP server?</h3>
+<p>Yes, but the official one only searches Twilio's docs. The <code>@twilio-alpha/mcp</code> package can call the Twilio API, and Twilio labels it a proof of concept.</p>
+<h3 id="is-it-safe-to-give-an-ai-agent-a-phone-number">Is it safe to give an AI agent a phone number?</h3>
+<p>It is safe with limits: a scoped API key, a spend cap, approval for outbound messages and calls, and consent from the people the agent contacts.</p>
+      <section class="guide-cta" aria-labelledby="cta-heading">
+        <h2 id="cta-heading">Get a phone number for your agent</h2>
+        <p>Numbers for Agents is an API for agent phone lines: numbers, SMS, call webhooks, SIP, and WebSocket media. It is in private beta. Join the waitlist for early access and pricing.</p>
+        <form class="waitlist-form" data-waitlist-form data-source="give-claude-mcp-agent-a-phone-number" action="/api/waitlist" method="post">
+          <label for="cta-email">Work email</label>
+          <div class="waitlist-row">
+            <input type="email" id="cta-email" name="email" required autocomplete="email" placeholder="you@company.com" aria-describedby="cta-message">
+            <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          </div>
+          <div class="hp-field" aria-hidden="true">
+            <label for="cta-company">Company</label>
+            <input type="text" id="cta-company" name="company" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message" id="cta-message" data-form-message role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="guide-related">
+        <h2>Related</h2>
+        <ul>
+          <li><a href="/compare/best-phone-number-apis-for-ai-agents">Best phone number APIs for AI agents (2026)</a></li>
+          <li><a href="/guides/how-to-give-your-ai-agent-a-phone-number">How to give your AI agent a phone number</a></li>
+          <li><a href="/guides/ai-agent-sms-api-explained">AI agent SMS API explained</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/main.js" defer></script>
+</body>
+</html>

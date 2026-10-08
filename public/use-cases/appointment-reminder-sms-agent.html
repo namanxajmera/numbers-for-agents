@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Appointment Reminder SMS Agent: Confirm and Reschedule</title>
+  <meta name="description" content="Build an AI agent that texts appointment reminders and handles confirm, cancel, and reschedule replies. Consent rules, healthcare limits, 10DLC, and STOP.">
+  <link rel="canonical" href="https://numberforagents.com/use-cases/appointment-reminder-sms-agent">
+  <link rel="alternate" type="text/markdown" href="https://numberforagents.com/use-cases/appointment-reminder-sms-agent.md">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Numbers for Agents">
+  <meta property="og:title" content="Appointment Reminder SMS Agent: Confirm and Reschedule">
+  <meta property="og:description" content="Build an AI agent that texts appointment reminders and handles confirm, cancel, and reschedule replies. Consent rules, healthcare limits, 10DLC, and STOP.">
+  <meta property="og:url" content="https://numberforagents.com/use-cases/appointment-reminder-sms-agent">
+  <meta property="og:image" content="https://numberforagents.com/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#0a0b0d">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": "Appointment reminder SMS agent",
+  "description": "Build an AI agent that texts appointment reminders and handles confirm, cancel, and reschedule replies. Consent rules, healthcare limits, 10DLC, and STOP.",
+  "datePublished": "2026-10-08",
+  "dateModified": "2026-10-08",
+  "mainEntityOfPage": "https://numberforagents.com/use-cases/appointment-reminder-sms-agent",
+  "image": "https://numberforagents.com/og.png",
+  "author": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Numbers for Agents",
+    "url": "https://numberforagents.com",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://numberforagents.com/og.png"
+    }
+  }
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://numberforagents.com/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Use cases",
+      "item": "https://numberforagents.com/use-cases/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Appointment reminder SMS agent",
+      "item": "https://numberforagents.com/use-cases/appointment-reminder-sms-agent"
+    }
+  ]
+}
+  </script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Do I need consent to send appointment reminder texts?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes, in most cases. Automated texts to mobile numbers need prior express consent. Collect it at booking. Healthcare providers have a narrow exemption for reminders that meet strict conditions."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How far in advance should an appointment reminder be sent?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "24 to 48 hours before is common. Some businesses add a second reminder a few hours before. For healthcare reminders under the FCC exemption, the limit is one message per day and three per week."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can an AI agent reschedule appointments by text?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. The agent reads the reply, checks the calendar through a tool, offers open slots, and books the one the person picks. Keep a human escalation path for anything unclear."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What should a reminder text include?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The business name, the date and time, how to confirm or reschedule, and how to opt out. Keep health details and promotions out."
+      }
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-nav">
+    <div class="container">
+      <a class="wordmark" href="/">Numbers for Agents</a>
+      <nav aria-label="Primary">
+        <ul class="nav-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn-primary" href="/#waitlist">Join the waitlist</a>
+    </div>
+  </header>
+
+  <main id="main">
+    <header class="guide-header">
+      <div class="container">
+        <nav class="breadcrumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/use-cases/">Use cases</a></li><li aria-current="page">Appointment reminder SMS agent</li></ol></nav>
+        <h1>Appointment reminder SMS agent</h1>
+        <p class="guide-meta">Updated <time datetime="2026-10-08">October 8, 2026</time> · About 5 min read</p>
+      </div>
+    </header>
+
+    <article class="guide-body container">
+      <nav class="toc" aria-label="On this page"><p>On this page</p><ol><li><a href="#the-message-flow">The message flow</a></li><li><a href="#handle-stop-before-the-model">Handle STOP before the model</a></li><li><a href="#consent-rules-for-reminder-texts">Consent rules for reminder texts</a></li><li><a href="#healthcare-reminders-the-exemption-and-its-limits">Healthcare reminders: the exemption and its limits</a></li><li><a href="#phone-number-setup">Phone number setup</a></li><li><a href="#how-numbers-for-agents-fits">How Numbers for Agents fits</a></li><li><a href="#faq">FAQ</a></li></ol></nav>
+      <p>A reminder text that only says &quot;You have an appointment tomorrow at 3pm&quot; is a one-way broadcast. An appointment reminder <strong>agent</strong> reads the reply. When the person writes &quot;can we do Thursday instead?&quot;, the agent checks the calendar, offers times, and moves the booking. This page covers the message flow, the phone number setup, and the US rules for reminder texts.</p>
+<aside class="callout"><p><strong>Short answer:</strong> use one registered number per business for reminders and replies. Collect consent when the appointment is booked. Send the reminder 24 to 48 hours before, let the agent handle confirm, cancel, and reschedule replies, and handle STOP in code before the model sees the message. Healthcare reminders have a consent exemption with strict limits.</p></aside>
+<h2 id="the-message-flow">The message flow</h2>
+<ol>
+<li><strong>Booking.</strong> The person books and agrees to get texts about the appointment. Store the consent with a timestamp and the wording they saw.</li>
+<li><strong>Reminder.</strong> Send 24 to 48 hours before. Include the business name, date, time, and how to reply. Example: &quot;Bright Dental: reminder of your appointment Thu Oct 15 at 3:00pm. Reply C to confirm, R to reschedule. Reply STOP to opt out.&quot;</li>
+<li><strong>Reply handling.</strong> The agent reads the reply. &quot;C&quot;, &quot;yes&quot;, and &quot;see you then&quot; all mean confirm. &quot;R&quot; or &quot;can I come Friday&quot; means reschedule.</li>
+<li><strong>Reschedule.</strong> The agent checks the calendar, offers two or three slots, and books the chosen one. It sends a confirmation text with the new time.</li>
+<li><strong>Escalation.</strong> Questions the agent cannot answer go to staff, with the thread attached.</li>
+</ol>
+<p>Accept short codes such as C and R, and also natural language. Short codes are reliable. Natural language is what people actually send.</p>
+<h2 id="handle-stop-before-the-model">Handle STOP before the model</h2>
+<p>Opt-out handling must never depend on the model. Check every inbound message in code first:</p>
+<pre class="code-block"><code>const OPT_OUT = [&quot;stop&quot;, &quot;quit&quot;, &quot;end&quot;, &quot;revoke&quot;, &quot;opt out&quot;, &quot;cancel&quot;, &quot;unsubscribe&quot;];
+
+function isOptOut(body) {
+  const text = body.trim().toLowerCase().replace(/[^a-z ]/g, &quot;&quot;);
+  return OPT_OUT.includes(text);
+}</code></pre>
+<p>If the message is an opt-out, mark the number as opted out, send at most one confirmation text with no marketing, and stop. Under current FCC rules these seven words are always valid opt-outs, and other wording counts too if a reasonable person would read it as an opt-out. You must honor an opt-out within 10 business days. Your agent should stop at once.</p>
+<p>The word &quot;cancel&quot; is a problem for reminder agents, because a person may mean &quot;cancel my appointment&quot;. Treat a bare &quot;CANCEL&quot; as an opt-out, as the rules require. Then let the agent ask in its confirmation whether the person also wants the appointment cancelled, or tell them how to cancel it.</p>
+<h2 id="consent-rules-for-reminder-texts">Consent rules for reminder texts</h2>
+<p>These facts are current as of October 8, 2026. This is not legal advice.</p>
+<ul>
+<li><strong>General reminders</strong> (salons, home services, car service, professional services) are informational. Automated texts to mobile numbers need the person's prior express consent. Written consent is required only for marketing. Collect consent at booking and keep the record.</li>
+<li><strong>Do not mix in marketing.</strong> A promotion inside a reminder makes it a marketing message, which needs prior express written consent. Keep promotions in a separate program.</li>
+<li><strong>Opt-outs by category.</strong> An FCC order adopted September 30, 2026 (FCC 26-67) will let a STOP reply to an informational message cover only that category, and let senders name one exclusive opt-out method such as replying STOP. It takes effect 30 days after publication in the Federal Register. Until then, the current rules apply.</li>
+</ul>
+<h2 id="healthcare-reminders-the-exemption-and-its-limits">Healthcare reminders: the exemption and its limits</h2>
+<p>The FCC exempts some healthcare messages to mobile numbers from the consent requirement (47 CFR 64.1200(a)(9)(iv)). The limits are strict. The message must:</p>
+<ul>
+<li>Go only to the mobile number the patient gave the provider.</li>
+<li>Name the provider and give contact information.</li>
+<li>Be for an allowed purpose, such as appointment confirmations and reminders, pre-operative instructions, lab results, or prescription notices.</li>
+<li>Contain no marketing and no billing or debt content.</li>
+<li>Be 160 characters or less for a text.</li>
+<li>Be sent at most once a day and three times a week per patient.</li>
+<li>Offer an easy opt-out, such as replying STOP, and honor it immediately.</li>
+<li>Comply with HIPAA privacy rules.</li>
+</ul>
+<p>A two-way reschedule conversation goes beyond a single reminder. The safer path is to collect consent at booking anyway. Also keep health details out of texts. &quot;Your appointment at Bright Dental&quot; is fine. The reason for the visit is not.</p>
+<h2 id="phone-number-setup">Phone number setup</h2>
+<ul>
+<li><strong>One number per business.</strong> Patients and customers should see the same sender every time. For platforms with many businesses, see <a href="/use-cases/phone-numbers-for-ai-agent-platforms">one number per customer</a>.</li>
+<li><strong>10DLC or toll-free.</strong> A local number needs <a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration</a>. Register as Customer Care, Account Notifications, or Mixed, with sample messages that show the reminder and a reschedule reply. A verified toll-free number is a faster alternative.</li>
+<li><strong>Voice on the same number.</strong> People often call back the number that texted them. Enable voice and forward calls to the front desk, or to an <a href="/use-cases/ai-receptionist-phone-number">AI receptionist</a>.</li>
+<li><strong>Timing.</strong> Send reminders at sensible local times. Store each person's time zone.</li>
+</ul>
+<h2 id="how-numbers-for-agents-fits">How Numbers for Agents fits</h2>
+<p>Numbers for Agents is building an API for agent phone lines: numbers, two-way SMS webhooks, and voice on the same number. It is in private beta. Join the waitlist below if you build reminder or scheduling agents.</p>
+<h2 id="faq">FAQ</h2>
+<h3 id="do-i-need-consent-to-send-appointment-reminder-texts">Do I need consent to send appointment reminder texts?</h3>
+<p>Yes, in most cases. Automated texts to mobile numbers need prior express consent. Collect it at booking. Healthcare providers have a narrow exemption for reminders that meet strict conditions.</p>
+<h3 id="how-far-in-advance-should-an-appointment-reminder-be-sent">How far in advance should an appointment reminder be sent?</h3>
+<p>24 to 48 hours before is common. Some businesses add a second reminder a few hours before. For healthcare reminders under the FCC exemption, the limit is one message per day and three per week.</p>
+<h3 id="can-an-ai-agent-reschedule-appointments-by-text">Can an AI agent reschedule appointments by text?</h3>
+<p>Yes. The agent reads the reply, checks the calendar through a tool, offers open slots, and books the one the person picks. Keep a human escalation path for anything unclear.</p>
+<h3 id="what-should-a-reminder-text-include">What should a reminder text include?</h3>
+<p>The business name, the date and time, how to confirm or reschedule, and how to opt out. Keep health details and promotions out.</p>
+      <section class="guide-cta" aria-labelledby="cta-heading">
+        <h2 id="cta-heading">Get a phone number for your agent</h2>
+        <p>Numbers for Agents is an API for agent phone lines: numbers, SMS, call webhooks, SIP, and WebSocket media. It is in private beta. Join the waitlist for early access and pricing.</p>
+        <form class="waitlist-form" data-waitlist-form data-source="appointment-reminder-sms-agent" action="/api/waitlist" method="post">
+          <label for="cta-email">Work email</label>
+          <div class="waitlist-row">
+            <input type="email" id="cta-email" name="email" required autocomplete="email" placeholder="you@company.com" aria-describedby="cta-message">
+            <button type="submit" class="btn btn-primary">Join the waitlist</button>
+          </div>
+          <div class="hp-field" aria-hidden="true">
+            <label for="cta-company">Company</label>
+            <input type="text" id="cta-company" name="company" tabindex="-1" autocomplete="off">
+          </div>
+          <p class="form-message" id="cta-message" data-form-message role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <aside class="guide-related">
+        <h2>Related</h2>
+        <ul>
+          <li><a href="/guides/a2p-10dlc-registration-for-ai-agents">A2P 10DLC registration for AI agents</a></li>
+          <li><a href="/guides/ai-agent-sms-api-explained">AI agent SMS API explained</a></li>
+          <li><a href="/use-cases/ai-receptionist-phone-number">AI receptionist phone number: how to set one up</a></li>
+        </ul>
+      </aside>
+    </article>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p><a href="mailto:hello@numberforagents.com">hello@numberforagents.com</a></p>
+      <ul class="footer-links">
+          <li><a href="/guides/">Guides</a></li>
+          <li><a href="/compare/">Compare</a></li>
+          <li><a href="/use-cases/">Use cases</a></li>
+          <li><a href="/docs">API docs</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/privacy">Privacy</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+      </ul>
+      <p>&copy; 2026 Numbers for Agents</p>
+    </div>
+  </footer>
+
+  <script src="/analytics.js" defer></script>
+  <script src="/main.js" defer></script>
+</body>
+</html>
